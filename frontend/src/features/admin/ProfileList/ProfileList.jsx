@@ -8,9 +8,9 @@ import './ProfileList.css';
 
 export const ProfileList = () => {
   const { user } = useAuth();
-  const [name, setName] = useState(user?.name || '');
+  const [name, setName] = useState(user?.full_name || '');
   const [email] = useState(user?.email || '');
-  const [phone, setPhone] = useState('+1 555-0199');
+  const [phone, setPhone] = useState(user?.phone || '');
   const [success, setSuccess] = useState(false);
 
   const handleSave = (e) => {
@@ -20,14 +20,14 @@ export const ProfileList = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-2xl animate-fade-in">
       <div>
         <h2 className="text-xl font-bold text-slate-900">User Profile Settings</h2>
         <p className="text-xs text-slate-500">Edit your user details and credential configurations.</p>
       </div>
 
       {success && (
-        <div className="p-3 text-xs bg-green-50 text-green-700 border border-green-250 rounded font-medium flex items-center gap-1.5">
+        <div className="p-3 text-xs bg-green-50 text-green-700 border border-green-200 rounded font-medium flex items-center gap-1.5">
           <UserCheck size={14} />
           <span>Profile changes saved successfully!</span>
         </div>
@@ -51,10 +51,9 @@ export const ProfileList = () => {
             label="Contact Number" 
             value={phone} 
             onChange={(e) => setPhone(e.target.value)} 
-            required 
           />
           <div className="flex justify-end pt-2">
-            <Button type="submit" variant="primary">
+            <Button type="submit" variant="medical">
               Save Account Changes
             </Button>
           </div>

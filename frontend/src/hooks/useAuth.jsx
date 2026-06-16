@@ -1,15 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ROLES } from '../constants/roles';
+import { api } from '../services/api';
 
 const AuthContext = createContext(null);
-
-// Preset test users for review
-const MOCK_USERS = {
-  'admin@homepathy.com': { id: 'u1', name: 'Dr. Sarah Collins', email: 'admin@homepathy.com', role: ROLES.ADMIN },
-  'doctor@homepathy.com': { id: 'u2', name: 'Dr. Amit Patel', email: 'doctor@homepathy.com', role: ROLES.DOCTOR },
-  'patient@homepathy.com': { id: 'u3', name: 'Suresh Kumar', email: 'patient@homepathy.com', role: ROLES.PATIENT },
-  'inventory@homepathy.com': { id: 'u4', name: 'John Doe', email: 'inventory@homepathy.com', role: ROLES.INVENTORY_REP }
-};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -17,9 +9,10 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Restore session
+    // Restore session on startup
     const savedUser = localStorage.getItem('hms_session');
-    if (savedUser) {
+    const token = localStorage.getItem('hms_access_token');
+    if (savedUser && token) {
       setUser(JSON.parse(savedUser));
     }
     setIsLoading(false);
@@ -28,28 +21,21 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setIsLoading(true);
     setError(null);
-    
-    // Simulate API request delay
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        const foundUser = MOCK_USERS[email.toLowerCase().trim()];
-        if (foundUser && password === 'password123') { // Simple default password
-          localStorage.setItem('hms_session', JSON.stringify(foundUser));
-          setUser(foundUser);
-          setIsLoading(false);
-          resolve(foundUser);
-        } else {
-          const errMsg = foundUser ? 'Incorrect password. (Use: password123)' : 'User not found. Use mock emails: admin@homepathy.com, doctor@homepathy.com, patient@homepathy.com, inventory@homepathy.com';
-          setError(errMsg);
-          setIsLoading(false);
-          reject(new Error(errMsg));
-        }
-      }, 600);
-    });
+    try {
+      const loggedInUser = await api.login(email, password);
+      setUser(loggedInUser);
+      setIsLoading(false);
+      return loggedInUser;
+    } catch (err) {
+      const errMsg = err.message || 'Invalid credentials or connection error.';
+      setError(errMsg);
+      setIsLoading(false);
+      throw new Error(errMsg);
+    }
   };
 
   const logout = () => {
-    localStorage.removeItem('hms_session');
+    api.logout();
     setUser(null);
   };
 

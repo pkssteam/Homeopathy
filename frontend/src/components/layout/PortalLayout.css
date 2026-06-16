@@ -1,0 +1,72 @@
+.portal-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--background-color);
+}
+
+.portal-container {
+  display: flex;
+  flex: 1;
+  /* Allow overflow so the floating collapse circle can protrude */
+  overflow: visible;
+  position: relative;
+  /* Still clip vertically so the page doesn't scroll sideways */
+  overflow-y: hidden;
+}
+
+/* Mobile: sidebar hidden, viewport takes full width */
+.portal-sidebar-desktop {
+  display: none;
+}
+
+.portal-viewport {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+  /* Ensure viewport doesn't get pushed by the protruding circle */
+  z-index: 0;
+}
+
+.portal-main-content {
+  flex: 1;
+  padding: 1rem;
+}
+
+.portal-max-width {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Desktop sidebar ── */
+@media (min-width: 768px) {
+  .portal-sidebar-desktop {
+    display: block;
+    position: relative;          /* anchor for the absolute collapse button */
+    width: 250px;
+    flex-shrink: 0;
+    /* overflow visible so the collapse circle protrudes outside */
+    overflow: visible;
+    height: 100%;
+    z-index: 10;                 /* above viewport so circle renders on top */
+  }
+
+  /* When collapsed, shrink the sidebar slot */
+  .portal-layout.sidebar-collapsed .portal-sidebar-desktop {
+    width: 68px;
+  }
+
+  .portal-main-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .portal-main-content {
+    padding: 2rem;
+  }
+}

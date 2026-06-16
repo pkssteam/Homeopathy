@@ -1,1 +1,6 @@
-/* AppointmentsList Stylesheet */
+/* AppointmentsList styles */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

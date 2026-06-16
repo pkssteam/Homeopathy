@@ -1,51 +1,208 @@
+/* =====================================================
+   SIDEBAR — White bg, portal accent, floating toggle
+   ===================================================== */
+
 .sidebar {
-  width: 240px;
+  width: 100%;
+  height: 100%;
   background-color: #ffffff;
-  border-right: 1px solid var(--border-color-default);
+  border-right: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 64px);
-  position: sticky;
-  top: 64px;
+  /* Overflow visible so the floating collapse circle protrudes */
+  overflow: visible;
+}
+
+/* ────────────────────────────────────────────────────
+   1. PROFILE HEADER
+   Relative so the floating collapse circle can be
+   absolutely positioned at its right edge.
+──────────────────────────────────────────────────── */
+.sidebar-profile-container {
+  position: relative;          /* anchor for .sidebar-collapse-btn */
+  padding: 1.25rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
+  background: #ffffff;
+  /* Clip the content but NOT the absolutely positioned button */
+  overflow: visible;
+}
+
+.sidebar.collapsed .sidebar-profile-container {
+  padding: 1.25rem 0;
+  justify-content: center;
+}
+
+/* ── Avatar ── */
+.sidebar-avatar-wrapper {
+  position: relative;
   flex-shrink: 0;
 }
 
-.sidebar-nav {
-  padding: 1.25rem 0.75rem;
+.sidebar-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary-light, #eef7ff);
+  color: var(--primary-color, #0984e3);
+  border: 2px solid var(--primary-color, #0984e3);
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition-normal, 0.25s);
+}
+
+.sidebar.collapsed .sidebar-avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 12px;
+}
+
+.sidebar-status-dot {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+}
+
+.sidebar-status-dot.online {
+  background-color: #22c55e;
+}
+
+/* ── Profile text ── */
+.sidebar-profile-info {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  overflow: hidden;
+  flex: 1;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.profile-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-role {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 400;
+  margin-top: 2px;
+  text-transform: capitalize;
+}
+
+/* ────────────────────────────────────────────────────
+   FLOATING COLLAPSE BUTTON
+   • Circle: 28 px diameter
+   • Position: right edge of the profile row
+     → right: -14px  (half of 28 px protrudes outside)
+     → vertically centred inside the profile row
+   • White fill + primary-colour border
+──────────────────────────────────────────────────── */
+.sidebar-collapse-btn {
+  position: absolute;
+  right: -14px;               /* Half the button width outside the sidebar */
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;         /* Circle */
+  background-color: #ffffff;
+  border: 2px solid var(--primary-color, #0984e3);
+  color: var(--primary-color, #0984e3);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;                /* Render above sidebar AND viewport content */
+  flex-shrink: 0;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: all var(--transition-fast, 0.15s);
+}
+
+.sidebar-collapse-btn:hover {
+  background-color: var(--primary-color, #0984e3);
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* ────────────────────────────────────────────────────
+   2. NAVIGATION LIST
+──────────────────────────────────────────────────── */
+.sidebar-nav {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
   flex-grow: 1;
-  overflow-y: auto;
+  overflow-y: auto;           /* Only the nav scrolls */
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
+}
+
+.sidebar.collapsed .sidebar-nav {
+  padding: 0.75rem 0.5rem;
+  align-items: center;
 }
 
 .sidebar-link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 0.875rem;
   color: #475569;
   background: none;
-  border: 1px solid transparent;
-  border-radius: 4px;
+  border: none;
+  border-radius: 8px;
   font-family: inherit;
-  font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-size: 13.5px;
+  font-weight: 400;
   text-align: left;
   cursor: pointer;
-  transition: all 0.15s;
+  width: 100%;
+  transition: all var(--transition-fast, 0.15s);
+  white-space: nowrap;
+}
+
+.sidebar.collapsed .sidebar-link {
+  padding: 0.6rem;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
 }
 
 .sidebar-link:hover {
-  background-color: #f1f5f9;
-  color: #0f172a;
+  background-color: var(--primary-light, #eef7ff);
+  color: var(--primary-color, #0984e3);
 }
 
 .sidebar-link.active {
-  background-color: #e0f2fe;
-  color: #0369a1;
+  background-color: var(--primary-color, #0984e3);
+  color: #ffffff;
   font-weight: 600;
 }
+
+/* All portals: active link text is always white for contrast */
 
 .sidebar-link-icon {
   flex-shrink: 0;
@@ -55,30 +212,115 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  animation: fadeIn 0.15s ease-out;
 }
 
-.sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid var(--border-color-default);
-  background-color: #f8fafc;
-  text-align: center;
+/* ────────────────────────────────────────────────────
+   3. EMERGENCY / HOSPITAL PHONE CARD (always last)
+   Phone icon floats: half above the card's top edge
+──────────────────────────────────────────────────── */
+.sidebar-emergency-container {
+  padding: 1.5rem 0.75rem 0.875rem;  /* top padding = space for floating icon */
+  flex-shrink: 0;
 }
 
-.sidebar-footer-text {
-  font-size: var(--font-size-xs);
-  color: #64748b;
-  font-weight: 500;
+.sidebar.collapsed .sidebar-emergency-container {
+  padding: 0.75rem 0.5rem;
 }
 
-@media (max-width: 768px) {
-  .sidebar {
-    width: 64px;
-  }
-  .sidebar-link-label, .sidebar-footer {
-    display: none;
-  }
-  .sidebar-link {
-    justify-content: center;
-    padding: 0.75rem;
-  }
+.sidebar-emergency-card {
+  position: relative;
+  background-color: var(--primary-color, #0984e3);
+  border-radius: 12px;
+  padding: 1.5rem 1rem 0.875rem;     /* top gap keeps text below the icon */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+  transition: all var(--transition-normal, 0.25s);
+}
+
+.sidebar.collapsed .sidebar-emergency-card {
+  background-color: transparent;
+  box-shadow: none;
+  padding: 0.5rem;
+  align-items: center;
+}
+
+/* Floating phone icon — half above the card */
+.emergency-float-icon {
+  position: absolute;
+  top: -18px;                  /* half of 36px height sits above card */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--primary-color, #0984e3);
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+  transition: all var(--transition-normal, 0.25s);
+}
+
+/* Float icon — always white icon on primary bg */
+
+/* Collapsed — becomes a standalone pulsing circle */
+.sidebar.collapsed .emergency-float-icon {
+  position: static;
+  transform: none;
+  animation: pulse 2.2s infinite;
+}
+
+.sidebar.collapsed .emergency-float-icon {
+  color: #ffffff !important;
+}
+
+.emergency-info {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  animation: fadeIn 0.18s ease-out;
+}
+
+.emergency-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.82);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Emergency title: white across all portals */
+
+.emergency-phone {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  margin-top: 2px;
+}
+
+/* Emergency phone: white across all portals */
+
+.emergency-phone:hover {
+  text-decoration: underline;
+}
+
+/* ── Animations ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(-4px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45); }
+  70%  { box-shadow: 0 0 0 9px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }

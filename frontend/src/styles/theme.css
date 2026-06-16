@@ -1,0 +1,81 @@
+/* =========================================
+   GLOBAL BASE TOKENS — ERP Corporate Theme
+   ========================================= */
+:root {
+  /* Page & Card Background */
+  --background-color: #f8fafc;
+  --card-background: #ffffff;
+
+  /* Text */
+  --text-primary: #334155;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+
+  /* Borders */
+  --border-color: #e2e8f0;
+
+  /* Default (fallback) Portal Primary */
+  --primary-color: #0984e3;
+  --primary-hover: #0877cc;
+  --primary-light: #eef7ff;
+
+  /* Status Colors */
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --info-color: #06b6d4;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =========================================
+   ADMIN PORTAL — Sky Blue
+   Trust · Authority · Management
+   ========================================= */
+.portal-layout.role-ADMIN {
+  --primary-color: #0984e3;
+  --primary-hover: #0877cc;
+  --primary-light: #eef7ff;
+}
+
+/* =========================================
+   DOCTOR PORTAL — Mint Green
+   Health · Care · Calmness
+   ========================================= */
+.portal-layout.role-DOCTOR {
+  --primary-color: #00b894;
+  --primary-hover: #00a381;
+  --primary-light: #f0fdf8;
+}
+
+/* =========================================
+   INVENTORY REP PORTAL — Teal
+   Operations · Logistics · Stock
+   ========================================= */
+.portal-layout.role-INVENTORY_REP {
+  --primary-color: #38ada9;
+  --primary-hover: #2d8b87;
+  --primary-light: #edf9f8;
+}
+
+/* =========================================
+   PATIENT PORTAL — Soft Purple
+   Friendly · Welcoming · Calm
+   ========================================= */
+.portal-layout.role-PATIENT {
+  --primary-color: #a29bfe;
+  --primary-hover: #8f87f0;
+  --primary-light: #f5f4ff;
+}
