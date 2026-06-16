@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --color-primary-50: #f0fdf4;  /* Healthcare soft green tint */
+  --color-primary-100: #dcfce7;
+  --color-primary-600: #16a34a;
+  --color-primary-700: #15803d;
+  --color-primary-800: #166534;
+  --color-primary-900: #14532d;
+  
+  --color-medical-50: #f0f9ff;   /* Medical Blue */
+  --color-medical-100: #e0f2fe;
+  --color-medical-500: #0ea5e9;
+  --color-medical-600: #0284c7;
+  --color-medical-700: #0369a1;
+  --color-medical-800: #075985;
+}
+
+:root {
+  /* Font sizes standard variables */
+  --font-size-xs: 0.75rem;     /* 12px */
+  --font-size-sm: 0.875rem;    /* 14px */
+  --font-size-md: 1rem;        /* 16px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-size-3xl: 1.875rem;   /* 30px */
+  --font-size-4xl: 2.25rem;    /* 36px */
+
+  /* Spacing and borders */
+  --btn-radius: 4px;
+  --card-radius: 6px;
+  --border-color-default: #e2e8f0;
+}
+
+/* Custom baseline styling rules avoiding glows or gradients */
+body {
+  font-family: var(--font-sans);
+  background-color: #f8fafc;
+  color: #1e293b;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* High contrast accessibility adjustments for low-literacy users */
+input, select, textarea {
+  font-size: var(--font-size-md);
+  border-radius: var(--btn-radius);
+  border: 1px solid var(--border-color-default);
+}
+
+input:focus, select:focus {
+  outline: 2px solid #0ea5e9;
+  outline-offset: 1px;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
