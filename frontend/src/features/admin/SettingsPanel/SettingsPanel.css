@@ -110,7 +110,7 @@
 
 .settings-input-wrapper input {
   width: 100%;
-  padding: 0.65rem 0.85rem 0.65rem 2.25rem;
+  padding: 0.65rem 2.5rem 0.65rem 2.25rem;
   border: 1.5px solid #e2e8f0;
   border-radius: 8px;
   font-size: 14px;
@@ -118,6 +118,26 @@
   outline: none;
   transition: all 0.15s ease;
   box-sizing: border-box;
+}
+
+.settings-eye-toggle {
+  position: absolute;
+  right: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.settings-eye-toggle:hover {
+  color: var(--primary-color, #0984e3);
 }
 
 .settings-input-wrapper input:focus {

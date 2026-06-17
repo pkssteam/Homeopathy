@@ -34,8 +34,15 @@ class UserViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated()]
         return [IsAdminRole()]
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get', 'put', 'patch'])
     def me(self, request):
+        if request.method in ['PUT', 'PATCH']:
+            serializer = UserUpdateSerializer(request.user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(UserSerializer(request.user).data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

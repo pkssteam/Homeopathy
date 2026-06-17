@@ -58,16 +58,6 @@ export const Navbar = ({ onToggleMenu, activeTab }) => {
 
       {/* Right Icons & Profile Settings */}
       <div className="navbar-actions">
-        {/* Localization Mock Icon */}
-        <button className="navbar-icon-btn" aria-label="Language selector">
-          <Globe size={18} />
-        </button>
-
-        {/* Favorite Star Mock Icon */}
-        <button className="navbar-icon-btn" aria-label="Star favorites">
-          <Star size={18} />
-        </button>
-
         {/* Notifications Icon with Dropdown */}
         <div className="navbar-notifications">
           <button 

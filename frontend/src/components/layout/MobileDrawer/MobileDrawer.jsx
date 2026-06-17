@@ -8,13 +8,10 @@ export const MobileDrawer = ({ isOpen, onClose, children }) => {
   return (
     <div className="mobile-drawer-overlay" onClick={onClose}>
       <div className="mobile-drawer-content" onClick={(e) => e.stopPropagation()}>
-        <div className="mobile-drawer-header">
-          <span className="mobile-drawer-title">Navigation</span>
-          <button className="mobile-drawer-close" onClick={onClose} aria-label="Close menu">
+        <div className="mobile-drawer-body">
+          <button className="mobile-drawer-close-floating" onClick={onClose} aria-label="Close menu">
             <X size={20} />
           </button>
-        </div>
-        <div className="mobile-drawer-body">
           {children}
         </div>
       </div>

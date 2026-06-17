@@ -20,7 +20,9 @@
 ──────────────────────────────────────────────────── */
 .sidebar-profile-container {
   position: relative;          /* anchor for .sidebar-collapse-btn */
-  padding: 1.25rem 1rem;
+  height: 80px;
+  box-sizing: border-box;
+  padding: 0 1rem;
   display: flex;
   align-items: center;
   gap: 0.875rem;
@@ -32,7 +34,9 @@
 }
 
 .sidebar.collapsed .sidebar-profile-container {
-  padding: 1.25rem 0;
+  height: 80px;
+  box-sizing: border-box;
+  padding: 0;
   justify-content: center;
 }
 

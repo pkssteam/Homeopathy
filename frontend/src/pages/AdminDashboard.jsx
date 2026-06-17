@@ -10,8 +10,6 @@ import { InventoryRepsList } from '../features/admin/InventoryRepsList/Inventory
 import { StaffList } from '../features/admin/StaffList/StaffList';
 import { ProfileList } from '../features/admin/ProfileList/ProfileList';
 
-import { SettingsPanel } from '../features/admin/SettingsPanel/SettingsPanel';
-
 export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -43,8 +41,6 @@ export const AdminDashboard = () => {
             </div>
           </div>
         );
-      case 'settings':
-        return <SettingsPanel />;
       case 'profile':
         return <ProfileList />;
       default:

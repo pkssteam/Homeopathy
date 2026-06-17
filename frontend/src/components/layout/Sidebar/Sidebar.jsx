@@ -22,7 +22,6 @@ export const Sidebar = ({ activeTab, setActiveTab, onItemClick, isCollapsed, onT
       { id: 'appointments',   label: 'Appointments',      icon: Calendar },
       { id: 'queue',          label: 'Queue Management',  icon: Package },
       { id: 'reports',        label: 'Reports',           icon: FileText },
-      { id: 'settings',       label: 'Settings',          icon: Settings },
       { id: 'profile',        label: 'Profile',           icon: User },
     ],
     [ROLES.DOCTOR]: [

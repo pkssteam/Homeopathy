@@ -122,6 +122,13 @@ export const api = {
     return await request('/users/me/');
   },
 
+  updateCurrentUser: async (userData) => {
+    return await request('/users/me/', {
+      method: 'PUT',
+      body: JSON.stringify(userData),
+    });
+  },
+
   changePassword: async (currentPassword, newPassword) => {
     return await request('/users/change_password/', {
       method: 'POST',

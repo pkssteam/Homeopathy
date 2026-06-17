@@ -39,8 +39,13 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const updateUserData = (updatedUser) => {
+    setUser(updatedUser);
+    localStorage.setItem('hms_session', JSON.stringify(updatedUser));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, error, setError }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUserData, isLoading, error, setError }}>
       {children}
     </AuthContext.Provider>
   );
