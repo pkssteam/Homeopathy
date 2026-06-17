@@ -1,0 +1,229 @@
+/* =====================================================
+   PORTAL SETTINGS & PASSWORD CHANGE PANEL
+   ===================================================== */
+
+.settings-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.settings-header {
+  margin-bottom: 1.5rem;
+}
+
+.settings-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.25rem 0;
+}
+
+.settings-subtitle {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Layout Grid */
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .settings-grid {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
+}
+
+/* Card wrappers */
+.settings-card-wrapper {
+  background: #ffffff;
+}
+
+/* Form Styles */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settings-form-info {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+  margin: 0 0 0.5rem 0;
+}
+
+/* Feedback banners */
+.settings-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.settings-alert.error {
+  background-color: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #be123c;
+}
+
+.settings-alert.success {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+}
+
+/* Inputs fields */
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.settings-field label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.settings-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.settings-input-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.settings-input-wrapper input {
+  width: 100%;
+  padding: 0.65rem 0.85rem 0.65rem 2.25rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.settings-input-wrapper input:focus {
+  border-color: var(--primary-color, #0984e3);
+  box-shadow: 0 0 0 3px var(--primary-light, #eef7ff);
+}
+
+.settings-input-wrapper input:disabled {
+  background-color: #f8fafc;
+  opacity: 0.7;
+}
+
+/* Action button row */
+.settings-action-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.settings-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--primary-color, #0984e3);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6875rem 1.25rem;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+/* Specific theme overrides for active portal color text */
+.portal-layout.role-DOCTOR .settings-submit-btn,
+.portal-layout.role-PATIENT .settings-submit-btn {
+  color: #1e293b;
+}
+
+.settings-submit-btn:hover:not(:disabled) {
+  background-color: var(--primary-hover, #0877cc);
+  box-shadow: 0 4px 12px var(--primary-light, #eef7ff);
+}
+
+.settings-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Spinner inside button */
+.settings-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: settingsSpin 0.6s linear infinite;
+}
+
+.portal-layout.role-DOCTOR .settings-spinner,
+.portal-layout.role-PATIENT .settings-spinner {
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #1e293b;
+}
+
+@keyframes settingsSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Informational Guidelines column */
+.settings-info-panel {
+  background: #ffffff;
+}
+
+.settings-info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.settings-info-item {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.settings-info-item .bullet {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--primary-color, #0984e3);
+  margin-top: 0.5rem;
+  flex-shrink: 0;
+}
+
+.settings-info-item h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 0.15rem 0;
+}
+
+.settings-info-item p {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+  margin: 0;
+}

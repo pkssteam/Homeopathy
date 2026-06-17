@@ -122,6 +122,16 @@ export const api = {
     return await request('/users/me/');
   },
 
+  changePassword: async (currentPassword, newPassword) => {
+    return await request('/users/change_password/', {
+      method: 'POST',
+      body: JSON.stringify({
+        current_password: currentPassword,
+        new_password: newPassword
+      })
+    });
+  },
+
   activateUser: async (id) => {
     return await request(`/users/${id}/activate/`, {
       method: 'POST',

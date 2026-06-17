@@ -10,6 +10,8 @@ import { InventoryRepsList } from '../features/admin/InventoryRepsList/Inventory
 import { StaffList } from '../features/admin/StaffList/StaffList';
 import { ProfileList } from '../features/admin/ProfileList/ProfileList';
 
+import { SettingsPanel } from '../features/admin/SettingsPanel/SettingsPanel';
+
 export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -42,15 +44,7 @@ export const AdminDashboard = () => {
           </div>
         );
       case 'settings':
-        return (
-          <div className="space-y-4 animate-fade-in">
-            <h2 className="text-xl font-bold text-slate-900">Hospital Portal Configuration</h2>
-            <p className="text-xs text-slate-500">Adjust authentication limits, API endpoints, and system parameters.</p>
-            <div className="bg-white p-8 border border-slate-200 rounded-lg text-center text-slate-500 text-sm">
-              System preference forms will be released in Phase 4.
-            </div>
-          </div>
-        );
+        return <SettingsPanel />;
       case 'profile':
         return <ProfileList />;
       default:

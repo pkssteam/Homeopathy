@@ -30,7 +30,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_permissions(self):
-        if self.action == 'me':
+        if self.action in ['me', 'change_password']:
             return [permissions.IsAuthenticated()]
         return [IsAdminRole()]
 
@@ -38,6 +38,22 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'])
+    def change_password(self, request):
+        user = request.user
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+
+        if not current_password or not new_password:
+            return Response({'error': 'Please provide both current and new password.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(current_password):
+            return Response({'error': 'Incorrect current password.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({'status': 'password_changed', 'message': 'Password updated successfully.'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):

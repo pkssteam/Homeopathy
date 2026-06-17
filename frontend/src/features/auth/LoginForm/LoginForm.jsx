@@ -3,109 +3,139 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { ROUTES } from '../../../constants/routes';
 import { ROLES } from '../../../constants/roles';
-import { Button } from '../../../components/ui/Button/Button';
-import { Input } from '../../../components/ui/Input/Input';
-import { Form } from '../../../components/ui/Form/Form';
-import { HeartPulse } from 'lucide-react';
+import { Eye, EyeOff, LogIn, Heart } from 'lucide-react';
 import './LoginForm.css';
 
 export const LoginForm = () => {
   const { login, user, error, setError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      redirectUser(user.role);
-    }
+    if (user) redirectUser(user.role);
   }, [user]);
 
   const redirectUser = (role) => {
     switch (role) {
-      case ROLES.ADMIN:
-        navigate(ROUTES.ADMIN_DASHBOARD);
-        break;
-      case ROLES.DOCTOR:
-        navigate(ROUTES.DOCTOR_DASHBOARD);
-        break;
-      case ROLES.PATIENT:
-        navigate(ROUTES.PATIENT_DASHBOARD);
-        break;
-      case ROLES.INVENTORY_REP:
-        navigate(ROUTES.INVENTORY_DASHBOARD);
-        break;
-      default:
-        navigate(ROUTES.LOGIN);
+      case ROLES.ADMIN:         navigate(ROUTES.ADMIN_DASHBOARD); break;
+      case ROLES.DOCTOR:        navigate(ROUTES.DOCTOR_DASHBOARD); break;
+      case ROLES.PATIENT:       navigate(ROUTES.PATIENT_DASHBOARD); break;
+      case ROLES.INVENTORY_REP: navigate(ROUTES.INVENTORY_DASHBOARD); break;
+      default:                  navigate(ROUTES.LOGIN);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      setError('Please fill in all fields.');
+      setError('Please enter both email and password.');
       return;
     }
-
     setIsSubmitting(true);
     try {
       const loggedInUser = await login(email, password);
       redirectUser(loggedInUser.role);
-    } catch (err) {
-      // Error is set inside the auth hook
+    } catch (_) {
+      // error is handled in hook
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="login-card-container">
-      <div className="login-card-box">
-
-        {/* Header Branding */}
-        <div className="login-branding">
-          <div className="login-logo-circle">
-            <HeartPulse size={24} />
+    <div className="login-root">
+      <div className="login-container">
+        
+        {/* Left Side: Professional Illustration */}
+        <div className="login-image-section">
+          <div className="login-logo-group">
+            <div className="login-logo-icon">
+              <Heart size={20} className="text-emerald-600" />
+            </div>
+            <span className="login-logo-text">Homeopathy HMS</span>
           </div>
-          <h1 className="login-title">Homeopathy Hospital Management</h1>
-          <p className="login-subtitle">
-            Sign in to access your secure hospital portal, view medical files, or manage clinic inventory.
-          </p>
+          
+          <img 
+            src="/login-hero.png" 
+            alt="Homeopathy Clinic Illustration" 
+            className="login-hero-img" 
+          />
+          
+          <div className="login-image-text">
+            <h3>Holistic Clinic Care</h3>
+            <p>Managing remedies, patients, consultations, and scheduling under a unified portal.</p>
+          </div>
         </div>
 
-        {/* Credentials Form using reusable Form component */}
-        <Form onSubmit={handleSubmit} error={error}>
-          <Input
-            label="Email Address"
-            type="email"
-            placeholder="enter your email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={isSubmitting}
-          />
-          <Input
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={isSubmitting}
-          />
-
-          <div className="pt-2">
-            <Button
-              type="submit"
-              variant="medical"
-              className="w-full justify-center"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Authenticating...' : 'Sign In'}
-            </Button>
+        {/* Right Side: Form */}
+        <div className="login-form-section">
+          <div className="login-form-header">
+            <h2>Welcome Back</h2>
+            <p>Access your department portal to continue</p>
           </div>
-        </Form>
+
+          {error && (
+            <div className="login-error-box">
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="login-form-element">
+            <div className="login-input-group">
+              <label htmlFor="email">Email Address</label>
+              <input
+                id="email"
+                type="email"
+                placeholder="name@hospital.com"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); if (error) setError(''); }}
+                required
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div className="login-input-group">
+              <label htmlFor="password">Password</label>
+              <div className="login-password-container">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); if (error) setError(''); }}
+                  required
+                  disabled={isSubmitting}
+                />
+                <button
+                  type="button"
+                  className="login-toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" className="login-btn" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <span className="login-loader"></span>
+              ) : (
+                <>
+                  <LogIn size={16} />
+                  <span>Sign In</span>
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="login-footer">
+            <span>Homeopathy Hospital Management System</span>
+          </div>
+        </div>
 
       </div>
     </div>
