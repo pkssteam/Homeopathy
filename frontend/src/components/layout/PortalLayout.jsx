@@ -116,8 +116,8 @@ export const PortalLayout = ({ children, activeTab, setActiveTab }) => {
             <div className="portal-max-width">
               {children}
             </div>
-            <Footer />
           </main>
+          <Footer />
         </div>
       </div>
 
