@@ -41,7 +41,7 @@ export const PatientAppointments = () => {
       ]);
 
       setAppointments(apptsData);
-      setHospitals(hospData.filter(h => h.status === 'Active'));
+      setHospitals(hospData);
       setDoctors(doctorsData.filter(d => d.is_active));
     } catch (err) {
       console.error(err);

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../../../services/api';
-import { Table } from '../../../components/ui/Table/Table';
 import { Badge } from '../../../components/ui/Badge/Badge';
 import { Button } from '../../../components/ui/Button/Button';
 import { Input } from '../../../components/ui/Input/Input';
 import { Select } from '../../../components/ui/Select/Select';
 import { Modal } from '../../../components/ui/Modal/Modal';
 import { Form, FormGroup, FormActions } from '../../../components/ui/Form/Form';
-import { Plus, User, Package, RefreshCw } from 'lucide-react';
+import { 
+  Plus, User, RefreshCw, Search, Filter, X, 
+  Trash2, Power, Edit, AlertTriangle, AlertCircle, Info, CheckCircle, HelpCircle, Package
+} from 'lucide-react';
 import './InventoryRepsList.css';
 
 export const InventoryRepsList = () => {
@@ -15,6 +17,14 @@ export const InventoryRepsList = () => {
   const [hospitals, setHospitals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Filter & Search states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
   
   // Modal state
   const [isOpen, setIsOpen] = useState(false);
@@ -35,6 +45,28 @@ export const InventoryRepsList = () => {
   const [formErrors, setFormErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
 
+  // Toast Notification State
+  const [toasts, setToasts] = useState([]);
+  
+  const showToast = (message, type = 'success') => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
+
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: '',
+    cancelText: '',
+    onConfirm: () => {},
+    type: 'warning' // 'warning', 'danger', 'success'
+  });
+
   const fetchData = async () => {
     setLoading(true);
     setError('');
@@ -44,10 +76,10 @@ export const InventoryRepsList = () => {
         api.getHospitals()
       ]);
       setReps(repsData);
-      setHospitals(hospitalsData.filter(h => h.status === 'Active'));
+      setHospitals(hospitalsData);
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Failed to fetch inventory reps.');
+      setError(err.message || 'Failed to fetch inventory representatives.');
     } finally {
       setLoading(false);
     }
@@ -56,6 +88,11 @@ export const InventoryRepsList = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Reset page to 1 when search or status filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   const openAddModal = () => {
     setFormData({
@@ -135,41 +172,113 @@ export const InventoryRepsList = () => {
     try {
       if (isEditing) {
         await api.updateUser(selectedRepId, payload);
+        showToast('Representative information updated successfully.', 'success');
       } else {
         await api.createUser(payload);
+        showToast('New representative account registered successfully.', 'success');
       }
       setIsOpen(false);
       fetchData();
     } catch (err) {
       console.error(err);
-      setFormErrors({ api: err.message || 'Failed to save rep details.' });
+      setFormErrors({ api: err.message || 'Failed to save representative details.' });
+      showToast(err.message || 'Failed to save representative details.', 'error');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const toggleActivation = async (rep) => {
-    try {
-      if (rep.is_active) {
-        await api.deactivateUser(rep.id);
-      } else {
-        await api.activateUser(rep.id);
+  const toggleActivation = (rep) => {
+    const isActivating = !rep.is_active;
+    const actionWord = isActivating ? 'activate' : 'deactivate';
+    setConfirmModal({
+      isOpen: true,
+      title: `${isActivating ? 'Activate' : 'Deactivate'} Representative Account`,
+      message: `Are you sure you want to ${actionWord} the account of "${rep.full_name}"?`,
+      confirmText: isActivating ? 'Activate' : 'Deactivate',
+      cancelText: 'Cancel',
+      type: isActivating ? 'success' : 'warning',
+      onConfirm: async () => {
+        try {
+          if (rep.is_active) {
+            await api.deactivateUser(rep.id);
+          } else {
+            await api.activateUser(rep.id);
+          }
+          showToast(`Representative account ${isActivating ? 'activated' : 'deactivated'} successfully.`, 'success');
+          fetchData();
+        } catch (err) {
+          console.error(err);
+          showToast(err.message || 'Failed to update activation status.', 'error');
+        }
       }
-      fetchData();
-    } catch (err) {
-      console.error(err);
-      alert(err.message || 'Failed to update activation status.');
-    }
+    });
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-300 border-t-medical-600"></div>
-        <span className="ml-3 text-slate-500 text-sm">Loading inventory reps...</span>
-      </div>
-    );
-  }
+  const handleDelete = (rep) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Representative Account',
+      message: `Are you sure you want to permanently delete the representative account for "${rep.full_name}"? This action cannot be undone.`,
+      confirmText: 'Delete Account',
+      cancelText: 'Cancel',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await api.deleteUser(rep.id);
+          showToast('Representative account deleted successfully.', 'success');
+          fetchData();
+        } catch (err) {
+          console.error(err);
+          showToast(err.message || 'Failed to delete representative account.', 'error');
+        }
+      }
+    });
+  };
+
+  const handleDeleteAll = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete All Representative Accounts',
+      message: 'Are you sure you want to permanently delete ALL representative accounts? This will remove all representative records and cannot be undone.',
+      confirmText: 'Delete All',
+      cancelText: 'Cancel',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await api.deleteAllUsers('INVENTORY_REP');
+          showToast('All representative accounts deleted successfully.', 'success');
+          fetchData();
+        } catch (err) {
+          console.error(err);
+          showToast(err.message || 'Failed to delete all representative accounts.', 'error');
+        }
+      }
+    });
+  };
+
+  // Local filtering logic
+  const filteredReps = reps.filter((rep) => {
+    const matchesSearch = 
+      rep.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      rep.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (rep.phone && rep.phone.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (rep.hospital && `${rep.hospital.hospital_name} ${rep.hospital.branch_name}`.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesStatus =
+      statusFilter === 'All' ||
+      (statusFilter === 'Active' && rep.is_active) ||
+      (statusFilter === 'Inactive' && !rep.is_active);
+
+    return matchesSearch && matchesStatus;
+  });
+
+  // Pagination logic
+  const totalItems = filteredReps.length;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedReps = filteredReps.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const hospitalOptions = [
     { value: '', label: 'None (Independent)' },
@@ -177,21 +286,81 @@ export const InventoryRepsList = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900">Inventory Representatives</h2>
-          <p className="text-xs text-slate-500">Manage representative access, store assignments, and active credential states.</p>
+    <div className="reps-container">
+      {/* Header card */}
+      <div className="reps-header">
+        <div className="reps-header-info">
+          <div className="reps-header-icon">
+            <Package size={20} />
+          </div>
+          <div>
+            <h2 className="reps-header-title">Inventory Representatives</h2>
+            <p className="reps-header-subtitle">Manage inventory reps, remedy supply roles, and clinical locations.</p>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button size="md" variant="secondary" onClick={fetchData} className="flex items-center justify-center px-3">
-            <RefreshCw size={14} />
-          </Button>
-          <Button size="md" variant="medical" onClick={openAddModal} className="flex items-center gap-1.5">
+        <div className="flex items-center gap-3">
+          {reps.length > 0 && (
+            <button
+              onClick={handleDeleteAll}
+              className="reps-delete-all-btn"
+            >
+              <Trash2 size={16} />
+              <span>Delete All</span>
+            </button>
+          )}
+          <button onClick={openAddModal} className="reps-register-btn">
             <Plus size={16} />
-            <span>Add Rep</span>
-          </Button>
+            <span>Add Representative</span>
+          </button>
         </div>
+      </div>
+
+      {/* Filter and search bar container */}
+      <div className="reps-filters-container">
+        <div className="reps-filters-left">
+          <div className="reps-search-wrapper">
+            <span className="reps-search-icon">
+              <Search size={14} />
+            </span>
+            <input
+              type="text"
+              placeholder="Search by name, email, phone or hospital..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="reps-search-input"
+            />
+            {searchTerm && (
+              <button onClick={() => setSearchTerm('')} className="reps-search-clear">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className="reps-status-wrapper">
+            <span className="reps-status-icon">
+              <Filter size={14} />
+            </span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="reps-status-select"
+            >
+              <option value="All">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+            <span className="reps-status-arrow">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </div>
+        </div>
+
+        <button onClick={fetchData} className="reps-refresh-btn">
+          <RefreshCw size={14} />
+          <span>Refresh</span>
+        </button>
       </div>
 
       {error && (
@@ -200,65 +369,183 @@ export const InventoryRepsList = () => {
         </div>
       )}
 
-      {reps.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center space-y-3">
-          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
+      {loading ? (
+        <div className="reps-loading-container">
+          <div className="reps-loading-spinner"></div>
+          <span className="reps-loading-text">Loading representatives list...</span>
+        </div>
+      ) : filteredReps.length === 0 ? (
+        <div className="reps-empty-container">
+          <div className="reps-empty-icon-wrapper">
             <Package size={24} />
           </div>
-          <h3 className="font-semibold text-slate-700">No Representatives Registered</h3>
-          <p className="text-sm text-slate-500 max-w-sm mx-auto">
-            Click the "Add Rep" button above to add a new inventory representative account.
+          <h3 className="reps-empty-title">No Representatives Found</h3>
+          <p className="reps-empty-subtitle">
+            {searchTerm || statusFilter !== 'All' 
+              ? 'Try resetting the filters or modifying your search query.' 
+              : 'Add new inventory representative credentials to list them here.'}
           </p>
         </div>
       ) : (
-        <Table headers={['Representative Name', 'Email Address', 'Phone Number', 'Associated Hospital', 'Status', 'Actions']}>
-          {reps.map((rep) => (
-            <tr key={rep.id} className="hover:bg-slate-50/50">
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center border border-sky-100 flex-shrink-0">
-                    <User size={16} />
-                  </div>
-                  <span className="font-semibold text-slate-800">{rep.full_name}</span>
+        <div className="reps-table-card">
+          <div className="reps-table-wrapper">
+            <table className="reps-table">
+              <thead>
+                <tr>
+                  <th className="hospital-th col-info">FULL NAME</th>
+                  <th className="hospital-th col-email">EMAIL ADDRESS</th>
+                  <th className="hospital-th col-phone">PHONE NUMBER</th>
+                  <th className="hospital-th col-hosp">ASSOCIATED HOSPITAL</th>
+                  <th className="hospital-th col-status">STATUS</th>
+                  <th className="hospital-th col-actions">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody className="reps-tbody">
+                {paginatedReps.map((rep) => (
+                  <tr key={rep.id}>
+                    <td className="hospital-td col-info">
+                      <div className="user-avatar-cell">
+                        <div className="user-avatar-wrapper">
+                          <User size={16} />
+                        </div>
+                        <span className="user-display-name">{rep.full_name}</span>
+                      </div>
+                    </td>
+                    <td className="hospital-td col-email">
+                      <span className="text-xs text-slate-600">{rep.email}</span>
+                    </td>
+                    <td className="hospital-td col-phone">
+                      <span className="text-xs text-slate-600">{rep.phone || '-'}</span>
+                    </td>
+                    <td className="hospital-td col-hosp">
+                      <span className="text-xs text-slate-600 font-medium">
+                        {rep.hospital ? `${rep.hospital.hospital_name} (${rep.hospital.branch_name})` : 'Independent'}
+                      </span>
+                    </td>
+                    <td className="hospital-td col-status">
+                      <Badge variant={rep.is_active ? 'success' : 'warning'}>
+                        {rep.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </td>
+                    <td className="hospital-td col-actions">
+                      <div className="actions-wrapper">
+                        {/* Edit Button */}
+                        <button
+                          onClick={() => openEditModal(rep)}
+                          className="action-btn action-btn-edit"
+                          title="Edit Info"
+                        >
+                          <Edit size={13} />
+                        </button>
+
+                        {/* Activate/Deactivate Toggle Button */}
+                        {rep.is_active ? (
+                          <button
+                            onClick={() => toggleActivation(rep)}
+                            className="action-btn action-btn-deactivate"
+                            title="Deactivate Account"
+                          >
+                            <Power size={13} />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => toggleActivation(rep)}
+                            className="action-btn action-btn-activate"
+                            title="Activate Account"
+                          >
+                            <Power size={13} />
+                          </button>
+                        )}
+
+                        {/* Delete Button */}
+                        <button
+                          onClick={() => handleDelete(rep)}
+                          className="action-btn action-btn-delete"
+                          title="Delete Account"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Controls */}
+          {filteredReps.length > 0 && (
+            <div className="pagination-wrapper">
+              <div className="flex items-center gap-4">
+                <div className="pagination-info">
+                  Showing <span className="pagination-info-highlight">{indexOfFirstItem + 1}</span> to{' '}
+                  <span className="pagination-info-highlight">
+                    {Math.min(indexOfLastItem, totalItems)}
+                  </span>{' '}
+                  of <span className="pagination-info-highlight">{totalItems}</span> representatives
                 </div>
-              </td>
-              <td className="px-4 py-3 text-slate-650 text-xs">{rep.email}</td>
-              <td className="px-4 py-3 text-slate-650 text-xs">{rep.phone || '-'}</td>
-              <td className="px-4 py-3 text-slate-655 text-xs">
-                {rep.hospital ? `${rep.hospital.hospital_name} (${rep.hospital.branch_name})` : 'Independent'}
-              </td>
-              <td className="px-4 py-3">
-                <Badge variant={rep.is_active ? 'success' : 'gray'}>
-                  {rep.is_active ? 'Active' : 'Inactive'}
-                </Badge>
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex gap-2">
-                  <Button size="sm" variant="secondary" onClick={() => openEditModal(rep)}>
-                    Edit
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => toggleActivation(rep)}>
-                    {rep.is_active ? 'Deactivate' : 'Activate'}
-                  </Button>
+                <div className="hidden sm:flex items-center gap-1.5">
+                  <span className="text-xs text-slate-350">|</span>
+                  <span className="pagination-info">Show</span>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="py-1 px-2 border border-slate-200 rounded text-xs bg-slate-50 text-slate-650 cursor-pointer focus:outline-none focus:border-medical-500"
+                  >
+                    {[5, 10, 20, 50].map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </td>
-            </tr>
-          ))}
-        </Table>
+              </div>
+
+              <div className="pagination-controls">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="pagination-btn pagination-nav-btn"
+                >
+                  Prev
+                </button>
+                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pg) => (
+                  <button
+                    key={pg}
+                    onClick={() => setCurrentPage(pg)}
+                    className={`pagination-btn ${currentPage === pg ? 'pagination-btn-active' : ''}`}
+                  >
+                    {pg}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="pagination-btn pagination-nav-btn"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
-      {/* Reusable Modal & Form */}
+      {/* Add/Edit Modal */}
       <Modal 
         isOpen={isOpen} 
         onClose={() => setIsOpen(false)} 
-        title={isEditing ? 'Edit Representative Account' : 'Add New Representative Account'} 
+        title={isEditing ? 'Edit Representative Information' : 'Add New Representative'} 
         icon={Package}
       >
         <Form onSubmit={handleSave} error={formErrors.api}>
           <Input
             label="Full Name"
             name="full_name"
-            placeholder="e.g. Amit Patel"
+            placeholder="e.g. Anil Kapoor"
             value={formData.full_name}
             onChange={handleInputChange}
             error={formErrors.full_name}
@@ -270,7 +557,7 @@ export const InventoryRepsList = () => {
             label="Email Address (Username)"
             name="email"
             type="email"
-            placeholder="e.g. amit.patel@homeopathy.com"
+            placeholder="e.g. anil.kapoor@homeopathy.com"
             value={formData.email}
             onChange={handleInputChange}
             error={formErrors.email}
@@ -282,7 +569,7 @@ export const InventoryRepsList = () => {
             <Input
               label="Contact Phone"
               name="phone"
-              placeholder="e.g. +91 97766 55443"
+              placeholder="e.g. +91 99887 76655"
               value={formData.phone}
               onChange={handleInputChange}
               disabled={isSaving}
@@ -327,11 +614,79 @@ export const InventoryRepsList = () => {
               Cancel
             </Button>
             <Button type="submit" variant="medical" disabled={isSaving}>
-              {isSaving ? 'Saving...' : 'Save Account'}
+              {isSaving ? 'Saving...' : 'Save Representative'}
             </Button>
           </FormActions>
         </Form>
       </Modal>
+
+      {/* Confirmation Dialog Modal */}
+      {confirmModal.isOpen && (
+        <div className="confirm-modal-overlay">
+          <div className="confirm-modal-box">
+            <div className="confirm-modal-header">
+              <div className={`confirm-modal-icon-wrapper confirm-icon-${confirmModal.type}`}>
+                {confirmModal.type === 'danger' ? (
+                  <Trash2 size={20} />
+                ) : confirmModal.type === 'warning' ? (
+                  <AlertTriangle size={20} />
+                ) : (
+                  <HelpCircle size={20} />
+                )}
+              </div>
+              <h3 className="confirm-modal-title">{confirmModal.title}</h3>
+            </div>
+            
+            <div className="confirm-modal-body">
+              <p>{confirmModal.message}</p>
+            </div>
+            
+            <div className="confirm-modal-actions">
+              <button 
+                type="button" 
+                className="confirm-btn-cancel" 
+                onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+              >
+                {confirmModal.cancelText || 'Cancel'}
+              </button>
+              <button 
+                type="button" 
+                className={`confirm-btn-action confirm-btn-${confirmModal.type}`}
+                onClick={() => {
+                  confirmModal.onConfirm();
+                  setConfirmModal({ ...confirmModal, isOpen: false });
+                }}
+              >
+                {confirmModal.confirmText || 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification Container */}
+      <div className="toast-container">
+        {toasts.map((toast) => (
+          <div key={toast.id} className={`toast-item toast-${toast.type}`}>
+            <span className="toast-icon">
+              {toast.type === 'success' ? (
+                <CheckCircle size={16} />
+              ) : toast.type === 'error' ? (
+                <AlertCircle size={16} />
+              ) : (
+                <Info size={16} />
+              )}
+            </span>
+            <span className="toast-message">{toast.message}</span>
+            <button 
+              onClick={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
+              className="toast-close-btn"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

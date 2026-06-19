@@ -59,29 +59,19 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database Configuration
-USE_SQLITE = os.environ.get('USE_SQLITE', 'False').lower() in ('true', '1', 't')
-
-if USE_SQLITE:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+DATABASES = {
+    'default': {
+        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.mysql'),
+        'NAME': os.environ.get('DB_NAME', 'homeopathy'),
+        'USER': os.environ.get('DB_USER', 'root'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'root'),
+        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         }
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.mysql'),
-            'NAME': os.environ.get('DB_NAME', 'homeopathy'),
-            'USER': os.environ.get('DB_USER', 'root'),
-            'PASSWORD': os.environ.get('DB_PASSWORD', 'root'),
-            'HOST': os.environ.get('DB_HOST', 'localhost'),
-            'PORT': os.environ.get('DB_PORT', '3306'),
-            'OPTIONS': {
-                'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            }
-        }
-    }
+}
 
 AUTH_PASSWORD_VALIDATORS = []
 

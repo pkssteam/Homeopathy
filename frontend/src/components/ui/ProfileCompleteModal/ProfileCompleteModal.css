@@ -1,0 +1,306 @@
+/* ────────────────────────────────────────────────────────────────
+   ProfileCompleteModal.css
+   Overlay modal for doctor/patient first-time profile completion
+──────────────────────────────────────────────────────────────── */
+
+.pcm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  padding: 20px;
+  animation: pcm-fade-in 0.2s ease;
+}
+
+@keyframes pcm-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.pcm-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: pcm-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid #e5e7eb;
+}
+
+@keyframes pcm-slide-up {
+  from { opacity: 0; transform: translateY(30px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─── Header ─── */
+.pcm-header {
+  padding: 28px 28px 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-bottom: 1px solid #bbf7d0;
+}
+
+.pcm-icon-wrap {
+  width: 60px;
+  height: 60px;
+  background: #2e8b57;
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  box-shadow: 0 4px 14px rgba(46, 139, 87, 0.35);
+}
+
+.pcm-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 6px;
+}
+
+.pcm-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ─── Body (Scrollable) ─── */
+.pcm-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.pcm-section-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2e8b57;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* ─── Form Grid ─── */
+.pcm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+
+.pcm-grid-full {
+  grid-column: 1 / -1;
+}
+
+.pcm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.pcm-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.pcm-input,
+.pcm-select,
+.pcm-textarea {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #1f2937;
+  background: #ffffff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 9px 12px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  outline: none;
+}
+
+.pcm-input:focus,
+.pcm-select:focus,
+.pcm-textarea:focus {
+  border-color: #2e8b57;
+  box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.15);
+}
+
+.pcm-input.error,
+.pcm-select.error,
+.pcm-textarea.error {
+  border-color: #ef4444;
+}
+
+.pcm-textarea {
+  resize: vertical;
+  min-height: 75px;
+}
+
+.pcm-error-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: #ef4444;
+  margin-top: 2px;
+}
+
+/* ─── Time range ─── */
+.pcm-time-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.pcm-time-sep {
+  font-size: 13px;
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+/* ─── Days Checkboxes ─── */
+.pcm-days-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.pcm-day-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #4b5563;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 5px;
+  transition: background 0.15s;
+}
+
+.pcm-day-label:hover {
+  background: #f3f4f6;
+}
+
+.pcm-day-check {
+  accent-color: #2e8b57;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* ─── Footer ─── */
+.pcm-footer {
+  padding: 18px 28px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafafa;
+}
+
+.pcm-submit-btn {
+  width: 100%;
+  background: #2e8b57;
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.pcm-submit-btn:hover:not(:disabled) {
+  background: #246e44;
+  transform: translateY(-1px);
+}
+
+.pcm-submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.pcm-submit-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* ─── Skip Button ─── */
+.pcm-skip-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 10px 0 2px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #9ca3af;
+  cursor: pointer;
+  text-align: center;
+  transition: color 0.18s ease;
+}
+
+.pcm-skip-btn:hover:not(:disabled) {
+  color: #6b7280;
+}
+
+.pcm-skip-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ─── Spinner ─── */
+@keyframes pcm-spin {
+  to { transform: rotate(360deg); }
+}
+
+.pcm-spinner {
+  animation: pcm-spin 0.7s linear infinite;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 560px) {
+  .pcm-grid {
+    grid-template-columns: 1fr;
+  }
+  .pcm-grid-full {
+    grid-column: 1;
+  }
+  .pcm-days-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pcm-card {
+    border-radius: 14px;
+  }
+  .pcm-body {
+    padding: 18px 20px;
+  }
+  .pcm-header {
+    padding: 22px 20px 16px;
+  }
+}

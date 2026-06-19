@@ -93,6 +93,11 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             
         return Response(AppointmentSerializer(appointment).data, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['delete'])
+    def delete_all(self, request):
+        self.get_queryset().delete()
+        return Response({'message': 'All appointments deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
+
 
 class PatientQueueViewSet(viewsets.ModelViewSet):
     queryset = PatientQueue.objects.all()
@@ -163,3 +168,8 @@ class PatientQueueViewSet(viewsets.ModelViewSet):
         appointment.save()
 
         return Response(PatientQueueSerializer(queue_entry).data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['delete'])
+    def delete_all(self, request):
+        self.get_queryset().delete()
+        return Response({'message': 'All queue entries deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)

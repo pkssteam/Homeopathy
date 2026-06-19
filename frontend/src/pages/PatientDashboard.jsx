@@ -7,11 +7,12 @@ import { Card } from '../components/ui/Card/Card';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
 import { ShieldCheck, HeartPulse, Clock, Calendar, Bell } from 'lucide-react';
+import { ProfileCompleteModal } from '../components/ui/ProfileCompleteModal/ProfileCompleteModal';
 
 export const PatientDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { user } = useAuth();
-  
+
   // Dashboard state
   const [upcomingAppt, setUpcomingAppt] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -50,7 +51,7 @@ export const PatientDashboard = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card title="Patient Profile Status">
                 <div className="space-y-4">
@@ -155,8 +156,11 @@ export const PatientDashboard = () => {
   };
 
   return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-      {renderSection()}
-    </Layout>
+    <>
+      <ProfileCompleteModal />
+      <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+        {renderSection()}
+      </Layout>
+    </>
   );
 };

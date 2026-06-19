@@ -2,7 +2,27 @@
   background-color: #ffffff;
   border-top: 1px solid #e2e8f0;
   padding: 1rem 1.5rem;
-  width: 100%;
+  width: auto;
+  margin-top: auto;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  margin-bottom: -1rem;
+}
+
+@media (min-width: 768px) {
+  .footer {
+    margin-left: -1.5rem;
+    margin-right: -1.5rem;
+    margin-bottom: -1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer {
+    margin-left: -2rem;
+    margin-right: -2rem;
+    margin-bottom: -2rem;
+  }
 }
 
 .footer-content {

@@ -1,27 +1,36 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../../../services/api';
-import { Table } from '../../../components/ui/Table/Table';
 import { Badge } from '../../../components/ui/Badge/Badge';
 import { Button } from '../../../components/ui/Button/Button';
 import { Input } from '../../../components/ui/Input/Input';
 import { Select } from '../../../components/ui/Select/Select';
 import { Modal } from '../../../components/ui/Modal/Modal';
 import { Form, FormGroup, FormActions } from '../../../components/ui/Form/Form';
-import { Plus, User, Search, RefreshCw } from 'lucide-react';
+import {
+  Plus, User, RefreshCw, Search, Filter, X,
+  Trash2, Power, Edit, AlertTriangle, AlertCircle, Info, CheckCircle, HelpCircle, Eye
+} from 'lucide-react';
 import './PatientsList.css';
 
 export const PatientsList = () => {
   const [patients, setPatients] = useState([]);
   const [hospitals, setHospitals] = useState([]);
-  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
+  // Filter & Search states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
   // Modal state
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedPatientId, setSelectedPatientId] = useState(null);
-  
+
   // Form state
   const [formData, setFormData] = useState({
     full_name: '',
@@ -32,9 +41,40 @@ export const PatientsList = () => {
     hospital_id: '',
     is_active: true
   });
-  
+
   const [formErrors, setFormErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+
+  // View Patient Details
+  const [viewOpen, setViewOpen] = useState(false);
+  const [viewPat, setViewPat] = useState(null);
+
+  const openViewModal = (pat) => {
+    setViewPat(pat);
+    setViewOpen(true);
+  };
+
+  // Toast Notification State
+  const [toasts, setToasts] = useState([]);
+
+  const showToast = (message, type = 'success') => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 4000);
+  };
+
+  // Confirmation Modal State
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: '',
+    cancelText: '',
+    onConfirm: () => { },
+    type: 'warning' // 'warning', 'danger', 'success'
+  });
 
   const fetchData = async () => {
     setLoading(true);
@@ -45,7 +85,7 @@ export const PatientsList = () => {
         api.getHospitals()
       ]);
       setPatients(patientsData);
-      setHospitals(hospitalsData.filter(h => h.status === 'Active'));
+      setHospitals(hospitalsData);
     } catch (err) {
       console.error(err);
       setError(err.message || 'Failed to fetch patient accounts.');
@@ -57,6 +97,11 @@ export const PatientsList = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Reset page to 1 when search or status filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   const openAddModal = () => {
     setFormData({
@@ -118,7 +163,7 @@ export const PatientsList = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    
+
     setIsSaving(true);
     const payload = {
       full_name: formData.full_name,
@@ -136,46 +181,113 @@ export const PatientsList = () => {
     try {
       if (isEditing) {
         await api.updateUser(selectedPatientId, payload);
+        showToast('Patient information updated successfully.', 'success');
       } else {
         await api.createUser(payload);
+        showToast('New patient account registered successfully.', 'success');
       }
       setIsOpen(false);
       fetchData();
     } catch (err) {
       console.error(err);
       setFormErrors({ api: err.message || 'Failed to save patient details.' });
+      showToast(err.message || 'Failed to save patient details.', 'error');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const toggleActivation = async (pat) => {
-    try {
-      if (pat.is_active) {
-        await api.deactivateUser(pat.id);
-      } else {
-        await api.activateUser(pat.id);
+  const toggleActivation = (pat) => {
+    const isActivating = !pat.is_active;
+    const actionWord = isActivating ? 'activate' : 'deactivate';
+    setConfirmModal({
+      isOpen: true,
+      title: `${isActivating ? 'Activate' : 'Deactivate'} Patient Account`,
+      message: `Are you sure you want to ${actionWord} the account of "${pat.full_name}"?`,
+      confirmText: isActivating ? 'Activate' : 'Deactivate',
+      cancelText: 'Cancel',
+      type: isActivating ? 'success' : 'warning',
+      onConfirm: async () => {
+        try {
+          if (pat.is_active) {
+            await api.deactivateUser(pat.id);
+          } else {
+            await api.activateUser(pat.id);
+          }
+          showToast(`Patient account ${isActivating ? 'activated' : 'deactivated'} successfully.`, 'success');
+          fetchData();
+        } catch (err) {
+          console.error(err);
+          showToast(err.message || 'Failed to update activation status.', 'error');
+        }
       }
-      fetchData();
-    } catch (err) {
-      console.error(err);
-      alert(err.message || 'Failed to update activation status.');
-    }
+    });
   };
 
-  const filteredPatients = patients.filter(p => 
-    p.full_name.toLowerCase().includes(search.toLowerCase()) || 
-    p.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleDelete = (pat) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Patient Account',
+      message: `Are you sure you want to permanently delete the patient account for "${pat.full_name}"? This action cannot be undone.`,
+      confirmText: 'Delete Account',
+      cancelText: 'Cancel',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await api.deleteUser(pat.id);
+          showToast('Patient account deleted successfully.', 'success');
+          fetchData();
+        } catch (err) {
+          console.error(err);
+          showToast(err.message || 'Failed to delete patient account.', 'error');
+        }
+      }
+    });
+  };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center p-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-300 border-t-medical-600"></div>
-        <span className="ml-3 text-slate-500 text-sm">Loading patients list...</span>
-      </div>
-    );
-  }
+  const handleDeleteAll = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete All Patient Accounts',
+      message: 'Are you sure you want to permanently delete ALL patient accounts? This will remove all patient records and cannot be undone.',
+      confirmText: 'Delete All',
+      cancelText: 'Cancel',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await api.deleteAllUsers('PATIENT');
+          showToast('All patient accounts deleted successfully.', 'success');
+          fetchData();
+        } catch (err) {
+          console.error(err);
+          showToast(err.message || 'Failed to delete all patient accounts.', 'error');
+        }
+      }
+    });
+  };
+
+  // Local filtering logic
+  const filteredPatients = patients.filter((pat) => {
+    const matchesSearch =
+      pat.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pat.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (pat.phone && pat.phone.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (pat.hospital && `${pat.hospital.hospital_name} ${pat.hospital.branch_name}`.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesStatus =
+      statusFilter === 'All' ||
+      (statusFilter === 'Active' && pat.is_active) ||
+      (statusFilter === 'Inactive' && !pat.is_active);
+
+    return matchesSearch && matchesStatus;
+  });
+
+  // Pagination logic
+  const totalItems = filteredPatients.length;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedPatients = filteredPatients.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const hospitalOptions = [
     { value: '', label: 'None (Independent)' },
@@ -183,33 +295,81 @@ export const PatientsList = () => {
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900">Registered Patients</h2>
-          <p className="text-xs text-slate-500">Access patient profile credentials, clinical history references, and activation states.</p>
-        </div>
-        <div className="flex gap-2">
-          <div className="relative w-64">
-            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
-              <Search size={16} />
-            </span>
-            <input 
-              type="text" 
-              placeholder="Search by name or email..." 
-              value={search} 
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-3 py-2 w-full text-sm border border-slate-250 rounded bg-white focus:outline-none focus:ring-1 focus:ring-medical-500"
-            />
+    <div className="patients-container">
+      {/* Header card */}
+      <div className="patients-header">
+        <div className="patients-header-info">
+          <div className="patients-header-icon">
+            <User size={20} />
           </div>
-          <Button size="md" variant="secondary" onClick={fetchData} className="flex items-center justify-center px-3">
-            <RefreshCw size={14} />
-          </Button>
-          <Button size="md" variant="medical" onClick={openAddModal} className="flex items-center gap-1.5 shrink-0">
+          <div>
+            <h2 className="patients-header-title">Registered Patients</h2>
+            <p className="patients-header-subtitle">Access patient profile details, phone numbers, and status settings.</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {patients.length > 0 && (
+            <button
+              onClick={handleDeleteAll}
+              className="patients-delete-all-btn"
+            >
+              <Trash2 size={16} />
+              <span>Delete All</span>
+            </button>
+          )}
+          <button onClick={openAddModal} className="patients-register-btn">
             <Plus size={16} />
             <span>Add Patient</span>
-          </Button>
+          </button>
         </div>
+      </div>
+
+      {/* Filter and search bar container */}
+      <div className="patients-filters-container">
+        <div className="patients-filters-left">
+          <div className="patients-search-wrapper">
+            <span className="patients-search-icon">
+              <Search size={14} />
+            </span>
+            <input
+              type="text"
+              placeholder="Search by name, email, phone or hospital..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="patients-search-input"
+            />
+            {searchTerm && (
+              <button onClick={() => setSearchTerm('')} className="patients-search-clear">
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          <div className="patients-status-wrapper">
+            <span className="patients-status-icon">
+              <Filter size={14} />
+            </span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="patients-status-select"
+            >
+              <option value="All">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+            <span className="patients-status-arrow">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </span>
+          </div>
+        </div>
+
+        <button onClick={fetchData} className="patients-refresh-btn">
+          <RefreshCw size={14} />
+          <span>Refresh</span>
+        </button>
       </div>
 
       {error && (
@@ -218,65 +378,192 @@ export const PatientsList = () => {
         </div>
       )}
 
-      {filteredPatients.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-lg p-12 text-center space-y-3">
-          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
+      {loading ? (
+        <div className="patients-loading-container">
+          <div className="patients-loading-spinner"></div>
+          <span className="patients-loading-text">Loading patients list...</span>
+        </div>
+      ) : filteredPatients.length === 0 ? (
+        <div className="patients-empty-container">
+          <div className="patients-empty-icon-wrapper">
             <User size={24} />
           </div>
-          <h3 className="font-semibold text-slate-700">No Patients Found</h3>
-          <p className="text-sm text-slate-500 max-w-sm mx-auto">
-            {search ? 'Try checking spelling or resetting your search filter.' : 'Click "Add Patient" to create a new profile.'}
+          <h3 className="patients-empty-title">No Patients Found</h3>
+          <p className="patients-empty-subtitle">
+            {searchTerm || statusFilter !== 'All'
+              ? 'Try resetting the filters or modifying your search query.'
+              : 'Add new patients to list them here.'}
           </p>
         </div>
       ) : (
-        <Table headers={['Patient Name', 'Email Address', 'Phone Number', 'Associated Hospital', 'Status', 'Actions']}>
-          {filteredPatients.map((pat) => (
-            <tr key={pat.id} className="hover:bg-slate-50/50">
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-sky-50 text-sky-600 rounded-full flex items-center justify-center border border-sky-100 flex-shrink-0">
-                    <User size={16} />
-                  </div>
-                  <span className="font-semibold text-slate-800">{pat.full_name}</span>
+        <div className="patients-table-card">
+          <div className="patients-table-wrapper">
+            <table className="patients-table">
+              <thead>
+                <tr>
+                  <th className="hospital-th col-info">FULL NAME</th>
+                  <th className="hospital-th col-email">EMAIL ADDRESS</th>
+                  <th className="hospital-th col-phone">PHONE NUMBER</th>
+                  <th className="hospital-th col-hosp">ASSOCIATED HOSPITAL</th>
+                  <th className="hospital-th col-status">STATUS</th>
+                  <th className="hospital-th col-actions">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody className="patients-tbody">
+                {paginatedPatients.map((pat) => (
+                  <tr key={pat.id}>
+                    <td className="hospital-td col-info">
+                      <div className="user-avatar-cell">
+                        <div className="user-avatar-wrapper">
+                          <User size={16} />
+                        </div>
+                        <span className="user-display-name">{pat.full_name}</span>
+                      </div>
+                    </td>
+                    <td className="hospital-td col-email">
+                      <span className="text-xs text-slate-600">{pat.email}</span>
+                    </td>
+                    <td className="hospital-td col-phone">
+                      <span className="text-xs text-slate-600">{pat.phone || '-'}</span>
+                    </td>
+                    <td className="hospital-td col-hosp">
+                      <span className="text-xs text-slate-600 font-medium">
+                        {pat.hospital ? `${pat.hospital.hospital_name} (${pat.hospital.branch_name})` : 'Independent'}
+                      </span>
+                    </td>
+                    <td className="hospital-td col-status">
+                      <Badge variant={pat.is_active ? 'success' : 'warning'}>
+                        {pat.is_active ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </td>
+                    <td className="hospital-td col-actions">
+                      <div className="actions-wrapper">
+                        {/* View Details Button */}
+                        <button
+                          onClick={() => openViewModal(pat)}
+                          className="action-btn action-btn-view"
+                          title="View Full Patient Profile"
+                        >
+                          <Eye size={13} />
+                        </button>
+
+                        {/* Edit Button */}
+                        <button
+                          onClick={() => openEditModal(pat)}
+                          className="action-btn action-btn-edit"
+                          title="Edit Info"
+                        >
+                          <Edit size={13} />
+                        </button>
+
+                        {/* Activate/Deactivate Toggle Button */}
+                        {pat.is_active ? (
+                          <button
+                            onClick={() => toggleActivation(pat)}
+                            className="action-btn action-btn-deactivate"
+                            title="Deactivate Account"
+                          >
+                            <Power size={13} />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => toggleActivation(pat)}
+                            className="action-btn action-btn-activate"
+                            title="Activate Account"
+                          >
+                            <Power size={13} />
+                          </button>
+                        )}
+
+                        {/* Delete Button */}
+                        <button
+                          onClick={() => handleDelete(pat)}
+                          className="action-btn action-btn-delete"
+                          title="Delete Account"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination Controls */}
+          {filteredPatients.length > 0 && (
+            <div className="pagination-wrapper">
+              <div className="flex items-center gap-4">
+                <div className="pagination-info">
+                  Showing <span className="pagination-info-highlight">{indexOfFirstItem + 1}</span> to{' '}
+                  <span className="pagination-info-highlight">
+                    {Math.min(indexOfLastItem, totalItems)}
+                  </span>{' '}
+                  of <span className="pagination-info-highlight">{totalItems}</span> patients
                 </div>
-              </td>
-              <td className="px-4 py-3 text-slate-650 text-xs">{pat.email}</td>
-              <td className="px-4 py-3 text-slate-650 text-xs">{pat.phone || '-'}</td>
-              <td className="px-4 py-3 text-slate-655 text-xs">
-                {pat.hospital ? `${pat.hospital.hospital_name} (${pat.hospital.branch_name})` : 'Independent'}
-              </td>
-              <td className="px-4 py-3">
-                <Badge variant={pat.is_active ? 'success' : 'gray'}>
-                  {pat.is_active ? 'Active' : 'Inactive'}
-                </Badge>
-              </td>
-              <td className="px-4 py-3">
-                <div className="flex gap-2">
-                  <Button size="sm" variant="secondary" onClick={() => openEditModal(pat)}>
-                    Edit
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => toggleActivation(pat)}>
-                    {pat.is_active ? 'Deactivate' : 'Activate'}
-                  </Button>
+                <div className="hidden sm:flex items-center gap-1.5">
+                  <span className="text-xs text-slate-350">|</span>
+                  <span className="pagination-info">Show</span>
+                  <select
+                    value={itemsPerPage}
+                    onChange={(e) => {
+                      setItemsPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="py-1 px-2 border border-slate-200 rounded text-xs bg-slate-50 text-slate-650 cursor-pointer focus:outline-none focus:border-medical-500"
+                  >
+                    {[5, 10, 20, 50].map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </td>
-            </tr>
-          ))}
-        </Table>
+              </div>
+
+              <div className="pagination-controls">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="pagination-btn pagination-nav-btn"
+                >
+                  Prev
+                </button>
+                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pg) => (
+                  <button
+                    key={pg}
+                    onClick={() => setCurrentPage(pg)}
+                    className={`pagination-btn ${currentPage === pg ? 'pagination-btn-active' : ''}`}
+                  >
+                    {pg}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="pagination-btn pagination-nav-btn"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
-      {/* Reusable Modal & Form */}
-      <Modal 
-        isOpen={isOpen} 
-        onClose={() => setIsOpen(false)} 
-        title={isEditing ? 'Edit Patient Account' : 'Add New Patient Account'} 
+      {/* Add/Edit Modal */}
+      <Modal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title={isEditing ? 'Edit Patient Information' : 'Add New Patient'}
         icon={User}
       >
         <Form onSubmit={handleSave} error={formErrors.api}>
           <Input
             label="Full Name"
             name="full_name"
-            placeholder="e.g. Suresh Kumar"
+            placeholder="e.g. Ramesh Kumar"
             value={formData.full_name}
             onChange={handleInputChange}
             error={formErrors.full_name}
@@ -288,7 +575,7 @@ export const PatientsList = () => {
             label="Email Address (Username)"
             name="email"
             type="email"
-            placeholder="e.g. suresh.kumar@gmail.com"
+            placeholder="e.g. ramesh.kumar@gmail.com"
             value={formData.email}
             onChange={handleInputChange}
             error={formErrors.email}
@@ -300,7 +587,7 @@ export const PatientsList = () => {
             <Input
               label="Contact Phone"
               name="phone"
-              placeholder="e.g. +91 98765 43210"
+              placeholder="e.g. +91 99887 76655"
               value={formData.phone}
               onChange={handleInputChange}
               disabled={isSaving}
@@ -345,11 +632,206 @@ export const PatientsList = () => {
               Cancel
             </Button>
             <Button type="submit" variant="medical" disabled={isSaving}>
-              {isSaving ? 'Saving...' : 'Save Account'}
+              {isSaving ? 'Saving...' : 'Save Patient'}
             </Button>
           </FormActions>
         </Form>
       </Modal>
+
+      {/* ─── View Patient Details Modal ───────────────────────── */}
+      {viewOpen && viewPat && (
+        <div className="vdm-overlay">
+          <div className="vdm-card">
+            {/* Header */}
+            <div className="vdm-header">
+              <div className="vdm-header-left">
+                <div className="vdm-icon-wrap">
+                  <User size={22} />
+                </div>
+                <div>
+                  <h3 className="vdm-title">{viewPat.full_name}</h3>
+                  <p className="vdm-subtitle">Patient Full Profile Details</p>
+                </div>
+              </div>
+              <button onClick={() => setViewOpen(false)} className="vdm-close-btn" aria-label="Close modal">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="vdm-body">
+              {/* Account Details */}
+              <div className="vdm-section">
+                <p className="vdm-section-title">
+                  <User size={14} /> Account Information
+                </p>
+                <div className="vdm-grid">
+                  {viewPat.patient_profile?.patient_code && (
+                    <div className="vdm-item vdm-item-full">
+                      <span className="vdm-label">Patient Registration Code</span>
+                      <span className="vdm-value" style={{ fontFamily: 'monospace', letterSpacing: '0.05em', color: '#2e8b57', fontSize: '15px' }}>
+                        {viewPat.patient_profile.patient_code}
+                      </span>
+                    </div>
+                  )}
+                  <div className="vdm-item">
+                    <span className="vdm-label">Email Address</span>
+                    <span className="vdm-value">{viewPat.email}</span>
+                  </div>
+                  <div className="vdm-item">
+                    <span className="vdm-label">Phone Number</span>
+                    <span className="vdm-value">{viewPat.phone || 'Not Provided'}</span>
+                  </div>
+                  <div className="vdm-item vdm-item-full">
+                    <span className="vdm-label">Associated Hospital Branch</span>
+                    <span className="vdm-value">
+                      {viewPat.hospital ? `${viewPat.hospital.hospital_name} (${viewPat.hospital.branch_name})` : 'Independent'}
+                    </span>
+                  </div>
+                  <div className="vdm-item">
+                    <span className="vdm-label">Account Status</span>
+                    <span className="vdm-value">
+                      <span className={viewPat.is_active ? 'vdm-badge-completed' : 'vdm-badge-pending'}>
+                        {viewPat.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="vdm-item">
+                    <span className="vdm-label">Profile Status</span>
+                    <span className="vdm-value">
+                      <span className={viewPat.is_profile_completed ? 'vdm-badge-completed' : 'vdm-badge-pending'}>
+                        {viewPat.is_profile_completed ? 'Completed' : 'Pending'}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Health Information */}
+              <div className="vdm-section">
+                <p className="vdm-section-title">
+                  <Info size={14} /> Personal & Health Profile
+                </p>
+                {viewPat.is_profile_completed && viewPat.patient_profile ? (
+                  <div className="vdm-grid">
+                    <div className="vdm-item">
+                      <span className="vdm-label">Gender</span>
+                      <span className="vdm-value">{viewPat.patient_profile.gender || 'N/A'}</span>
+                    </div>
+                    <div className="vdm-item">
+                      <span className="vdm-label">Date of Birth</span>
+                      <span className="vdm-value">{viewPat.patient_profile.date_of_birth || 'N/A'}</span>
+                    </div>
+                    <div className="vdm-item">
+                      <span className="vdm-label">Blood Group</span>
+                      <span className="vdm-value">{viewPat.patient_profile.blood_group || 'N/A'}</span>
+                    </div>
+                    <div className="vdm-item">
+                      <span className="vdm-label">Emergency Contact</span>
+                      <span className="vdm-value">{viewPat.patient_profile.emergency_contact || 'N/A'}</span>
+                    </div>
+                    <div className="vdm-item vdm-item-full">
+                      <span className="vdm-label">Residential Address</span>
+                      <span className="vdm-value" style={{ fontWeight: 500, lineHeight: 1.4 }}>
+                        {viewPat.patient_profile.address || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="vdm-item vdm-item-full">
+                      <span className="vdm-label">Known Allergies</span>
+                      <span className="vdm-value" style={{ color: viewPat.patient_profile.allergies?.toLowerCase() !== 'none' ? '#b91c1c' : '#0f172a' }}>
+                        {viewPat.patient_profile.allergies || 'None'}
+                      </span>
+                    </div>
+                    <div className="vdm-item vdm-item-full">
+                      <span className="vdm-label">Chronic Medical History</span>
+                      <span className="vdm-value">
+                        {viewPat.patient_profile.medical_history || 'None'}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p style={{ fontSize: '13.5px', color: '#64748b', fontStyle: 'italic', margin: 0, textAlign: 'center', padding: '10px 0' }}>
+                    Patient has not completed their health profile details yet.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="vdm-footer">
+              <button type="button" className="vdm-close-action-btn" onClick={() => setViewOpen(false)}>
+                Close Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Dialog Modal */}
+      {confirmModal.isOpen && (
+        <div className="confirm-modal-overlay">
+          <div className="confirm-modal-box">
+            <div className="confirm-modal-header">
+              <div className={`confirm-modal-icon-wrapper confirm-icon-${confirmModal.type}`}>
+                {confirmModal.type === 'danger' ? (
+                  <Trash2 size={20} />
+                ) : confirmModal.type === 'warning' ? (
+                  <AlertTriangle size={20} />
+                ) : (
+                  <HelpCircle size={20} />
+                )}
+              </div>
+              <h3 className="confirm-modal-title">{confirmModal.title}</h3>
+            </div>
+
+            <div className="confirm-modal-body">
+              <p>{confirmModal.message}</p>
+            </div>
+
+            <div className="confirm-modal-actions">
+              <button
+                type="button"
+                className="confirm-btn-cancel"
+                onClick={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+              >
+                {confirmModal.cancelText || 'Cancel'}
+              </button>
+              <button
+                type="button"
+                className={`confirm-btn-action confirm-btn-${confirmModal.type}`}
+                onClick={() => {
+                  confirmModal.onConfirm();
+                  setConfirmModal({ ...confirmModal, isOpen: false });
+                }}
+              >
+                {confirmModal.confirmText || 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification Container */}
+      <div className="toast-container">
+        {toasts.map((toast) => (
+          <div key={toast.id} className={`toast-item toast-${toast.type}`}>
+            <span className="toast-icon">
+              {toast.type === 'success' ? (
+                <CheckCircle size={16} />
+              ) : toast.type === 'error' ? (
+                <AlertCircle size={16} />
+              ) : (
+                <Info size={16} />
+              )}
+            </span>
+            <span className="toast-message">{toast.message}</span>
+            <button
+              onClick={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
+              className="toast-close-btn"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

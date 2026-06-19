@@ -3,9 +3,9 @@ import './Form.css';
 
 export const Form = ({ onSubmit, children, className = '', error, ...props }) => {
   return (
-    <form onSubmit={onSubmit} className={`space-y-4 ${className}`} {...props}>
+    <form onSubmit={onSubmit} className={`custom-form ${className}`} {...props}>
       {error && (
-        <div className="p-3 text-xs bg-red-50 text-red-700 border border-red-200 rounded font-medium">
+        <div className="form-error-summary">
           {error}
         </div>
       )}
@@ -16,7 +16,7 @@ export const Form = ({ onSubmit, children, className = '', error, ...props }) =>
 
 export const FormGroup = ({ children, className = '' }) => {
   return (
-    <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${className}`}>
+    <div className={`custom-form-group ${className}`}>
       {children}
     </div>
   );
@@ -24,7 +24,7 @@ export const FormGroup = ({ children, className = '' }) => {
 
 export const FormActions = ({ children, className = '' }) => {
   return (
-    <div className={`pt-4 border-t border-slate-200 flex justify-end gap-3 ${className}`}>
+    <div className={`custom-form-actions ${className}`}>
       {children}
     </div>
   );

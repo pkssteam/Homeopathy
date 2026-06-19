@@ -1,0 +1,53 @@
+/* Select styles */
+.form-select-container {
+  position: relative;
+  width: 100%;
+}
+
+.form-field-select {
+  width: 100%;
+  height: 42px;
+  padding-left: 14px;
+  padding-right: 36px;
+  background-color: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: #1e293b;
+  appearance: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.form-field-select:focus {
+  outline: none;
+  background-color: #ffffff;
+  border-color: var(--primary-color, #0984e3);
+  box-shadow: 0 0 0 3px rgba(9, 132, 227, 0.1);
+}
+
+.form-field-select:disabled {
+  background-color: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.form-field-select.has-error {
+  border-color: #ef4444;
+}
+
+.form-field-select.has-error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.form-select-arrow {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  color: #94a3b8;
+}

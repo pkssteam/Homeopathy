@@ -54,7 +54,9 @@ export const PortalLayout = ({ children, activeTab, setActiveTab }) => {
           {/* Desktop Only Small Nav Card Header */}
           <header className="portal-desktop-header">
             <div className="desktop-header-left">
-              <span className="desktop-brand">Welcome to Homeopathy Hospital</span>
+              <span className="desktop-brand">
+                Welcome to {user?.hospital ? `${user.hospital.hospital_name} (${user.hospital.branch_name})` : 'Homeopathy Hospital'}
+              </span>
             </div>
 
             <div className="desktop-header-right">
@@ -116,8 +118,8 @@ export const PortalLayout = ({ children, activeTab, setActiveTab }) => {
             <div className="portal-max-width">
               {children}
             </div>
+            <Footer />
           </main>
-          <Footer />
         </div>
       </div>
 

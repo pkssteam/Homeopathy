@@ -64,6 +64,12 @@ export const api = {
     localStorage.removeItem('hms_access_token');
     localStorage.removeItem('hms_refresh_token');
     localStorage.removeItem('hms_session');
+    // Clear session skipped profile flags so next login prompts it
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('profile_skipped_')) {
+        sessionStorage.removeItem(key);
+      }
+    });
   },
 
   // Hospitals
@@ -94,6 +100,12 @@ export const api = {
 
   deleteHospital: async (id) => {
     return await request(`/hospitals/${id}/`, {
+      method: 'DELETE',
+    });
+  },
+
+  deleteAllHospitals: async () => {
+    return await request('/hospitals/delete_all/', {
       method: 'DELETE',
     });
   },
@@ -129,6 +141,13 @@ export const api = {
     });
   },
 
+  deleteAllUsers: async (role = '') => {
+    const query = role ? `?role=${role}` : '';
+    return await request(`/users/delete_all/${query}`, {
+      method: 'DELETE',
+    });
+  },
+
   changePassword: async (currentPassword, newPassword) => {
     return await request('/users/change_password/', {
       method: 'POST',
@@ -148,6 +167,12 @@ export const api = {
   deactivateUser: async (id) => {
     return await request(`/users/${id}/deactivate/`, {
       method: 'POST',
+    });
+  },
+
+  deleteUser: async (id) => {
+    return await request(`/users/${id}/`, {
+      method: 'DELETE',
     });
   },
 
@@ -188,6 +213,18 @@ export const api = {
     });
   },
 
+  deleteAppointment: async (id) => {
+    return await request(`/appointments/${id}/`, {
+      method: 'DELETE',
+    });
+  },
+
+  deleteAllAppointments: async () => {
+    return await request('/appointments/delete_all/', {
+      method: 'DELETE',
+    });
+  },
+
   // Queue Management
   getQueue: async (params = {}) => {
     let query = '';
@@ -216,5 +253,63 @@ export const api = {
     return await request(`/queue/${id}/complete/`, {
       method: 'POST',
     });
-  }
+  },
+
+  deleteQueue: async (id) => {
+    return await request(`/queue/${id}/`, {
+      method: 'DELETE',
+    });
+  },
+
+  updateQueue: async (id, queueData) => {
+    return await request(`/queue/${id}/`, {
+      method: 'PUT',
+      body: JSON.stringify(queueData),
+    });
+  },
+
+  deleteAllQueue: async () => {
+    return await request('/queue/delete_all/', {
+      method: 'DELETE',
+    });
+  },
+
+  // ─── Doctor Profile ───────────────────────────────────────────────────────
+  getDoctors: async () => {
+    return await request('/doctors/');
+  },
+
+  getDoctorProfile: async () => {
+    return await request('/doctors/me/');
+  },
+
+  completeDoctorProfile: async (profileData) => {
+    return await request('/doctors/complete_profile/', {
+      method: 'POST',
+      body: JSON.stringify(profileData),
+    });
+  },
+
+  setDoctorConsultationFee: async (doctorProfileId, fee) => {
+    return await request(`/doctors/${doctorProfileId}/set_fee/`, {
+      method: 'POST',
+      body: JSON.stringify({ consultation_fee: fee }),
+    });
+  },
+
+  // ─── Patient Profile ──────────────────────────────────────────────────────
+  getPatients: async () => {
+    return await request('/patients/');
+  },
+
+  getPatientProfile: async () => {
+    return await request('/patients/me/');
+  },
+
+  completePatientProfile: async (profileData) => {
+    return await request('/patients/complete_profile/', {
+      method: 'POST',
+      body: JSON.stringify(profileData),
+    });
+  },
 };

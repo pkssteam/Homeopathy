@@ -1,1 +1,38 @@
-/* CSS module for Form layouts */
+/* Form styles */
+.custom-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-error-summary {
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  background-color: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #ffe4e6;
+  border-radius: 8px;
+}
+
+.custom-form-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .custom-form-group {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.custom-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 8px;
+}

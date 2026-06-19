@@ -8,6 +8,7 @@ import { Card } from '../components/ui/Card/Card';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
 import { ShieldCheck, Calendar, Activity, Users } from 'lucide-react';
+import { ProfileCompleteModal } from '../components/ui/ProfileCompleteModal/ProfileCompleteModal';
 
 export const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -43,7 +44,7 @@ export const DoctorDashboard = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-white border border-slate-200 rounded-lg p-4 flex items-center gap-4">
                 <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
@@ -75,7 +76,7 @@ export const DoctorDashboard = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card title="Portal Access Granted">
                 <div className="space-y-4">
@@ -158,8 +159,11 @@ export const DoctorDashboard = () => {
   };
 
   return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-      {renderSection()}
-    </Layout>
+    <>
+      <ProfileCompleteModal />
+      <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+        {renderSection()}
+      </Layout>
+    </>
   );
 };
