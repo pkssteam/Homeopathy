@@ -37,6 +37,7 @@ export const Sidebar = ({ activeTab, setActiveTab, onItemClick, isCollapsed, onT
     ],
     [ROLES.PATIENT]: [
       { id: 'dashboard',     label: 'Dashboard',    icon: LayoutDashboard },
+      { id: 'my_visits',     label: 'My Visits',    icon: HeartPulse },
       { id: 'doctors',       label: 'Doctors',      icon: Stethoscope },
       { id: 'appointments',  label: 'Appointments', icon: Calendar },
       { id: 'prescriptions', label: 'Prescriptions',icon: Folder },

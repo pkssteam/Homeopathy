@@ -39,13 +39,14 @@ class AppointmentSerializer(serializers.ModelSerializer):
     doctor = UserSerializer(read_only=True)
     hospital = HospitalSerializer(read_only=True)
     queue_entry = PatientQueueSerializer(read_only=True)
+    created_by_detail = UserSerializer(source='created_by', read_only=True)
 
     class Meta:
         model = Appointment
         fields = [
             'id', 'hospital', 'patient', 'doctor', 
             'appointment_date', 'appointment_time', 'token_number', 
-            'reason', 'status', 'created_by', 'created_at', 'updated_at',
+            'reason', 'status', 'created_by', 'created_by_detail', 'created_at', 'updated_at',
             'queue_entry'
         ]
 

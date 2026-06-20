@@ -56,9 +56,11 @@ export const PatientAppointments = () => {
   }, []);
 
   const openBookModal = () => {
+    const defaultHospitalId = hospitals[0]?.id || '';
+    const hospitalDoctors = doctors.filter(d => d.hospital?.id === defaultHospitalId);
     setFormData({
-      hospital_id: hospitals[0]?.id || '',
-      doctor_id: doctors[0]?.id || '',
+      hospital_id: defaultHospitalId,
+      doctor_id: hospitalDoctors[0]?.id || '',
       appointment_date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow's date default
       appointment_time: '10:00',
       reason: ''
@@ -69,7 +71,16 @@ export const PatientAppointments = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    if (name === 'hospital_id') {
+      const hospitalDoctors = doctors.filter(d => d.hospital?.id === value);
+      setFormData({
+        ...formData,
+        hospital_id: value,
+        doctor_id: hospitalDoctors[0]?.id || ''
+      });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
     if (formErrors[name]) {
       setFormErrors({ ...formErrors, [name]: '' });
     }
@@ -266,17 +277,6 @@ export const PatientAppointments = () => {
       >
         <Form onSubmit={handleSave} error={formErrors.api}>
           <Select
-            label="Preferred Homeopathic Doctor"
-            name="doctor_id"
-            value={formData.doctor_id}
-            onChange={handleInputChange}
-            options={doctors.map(d => ({ value: d.id, label: `${d.full_name} (Homeopathy Practitioner)` }))}
-            error={formErrors.doctor_id}
-            disabled={isSaving}
-            required
-          />
-
-          <Select
             label="Clinic Branch"
             name="hospital_id"
             value={formData.hospital_id}
@@ -284,6 +284,21 @@ export const PatientAppointments = () => {
             options={hospitals.map(h => ({ value: h.id, label: `${h.hospital_name} (${h.branch_name})` }))}
             error={formErrors.hospital_id}
             disabled={isSaving}
+            required
+          />
+
+          <Select
+            label="Preferred Homeopathic Doctor"
+            name="doctor_id"
+            value={formData.doctor_id}
+            onChange={handleInputChange}
+            options={
+              doctors.filter(d => d.hospital?.id === formData.hospital_id).length > 0
+                ? doctors.filter(d => d.hospital?.id === formData.hospital_id).map(d => ({ value: d.id, label: `${d.full_name} (Homeopathy Practitioner)` }))
+                : [{ value: '', label: 'No doctors available in this branch' }]
+            }
+            error={formErrors.doctor_id}
+            disabled={isSaving || doctors.filter(d => d.hospital?.id === formData.hospital_id).length === 0}
             required
           />
 

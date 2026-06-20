@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { api } from '../../services/api';
-import { Table } from '../../components/ui/Table/Table';
-import { Badge } from '../../components/ui/Badge/Badge';
-import { Button } from '../../components/ui/Button/Button';
-import { RefreshCw, Calendar, ClipboardList } from 'lucide-react';
+import { api } from '../../../services/api';
+import { Table } from '../../../components/ui/Table/Table';
+import { Badge } from '../../../components/ui/Badge/Badge';
+import { Button } from '../../../components/ui/Button/Button';
+import { RefreshCw, Calendar } from 'lucide-react';
+import './DoctorAppointments.css';
 
 export const DoctorAppointments = () => {
   const [appointments, setAppointments] = useState([]);
@@ -103,10 +104,10 @@ export const DoctorAppointments = () => {
                 <td className="px-4 py-3 font-semibold text-slate-800 text-sm">
                   {appt.patient?.full_name}
                 </td>
-                <td className="px-4 py-3 text-slate-650 text-xs">
+                <td className="px-4 py-3 text-slate-655 text-xs">
                   {appt.patient?.phone || '-'}
                 </td>
-                <td className="px-4 py-3 text-slate-650 text-xs">
+                <td className="px-4 py-3 text-slate-655 text-xs">
                   <div>{appt.appointment_date}</div>
                   <div className="text-[10px] text-slate-400">{appt.appointment_time}</div>
                 </td>

@@ -3,6 +3,10 @@ import { Layout } from '../components/layout/Layout';
 import { ProfileList } from '../features/admin/ProfileList/ProfileList';
 import { PatientAppointments } from '../features/patient/PatientAppointments';
 import { PatientDoctors } from '../features/patient/PatientDoctors';
+import { MyVisits } from '../features/patient/MyVisits';
+import { PatientPrescriptions } from '../features/patient/PatientPrescriptions';
+import { PatientReports } from '../features/patient/PatientReports';
+import { PatientFollowUps } from '../features/patient/PatientFollowUps';
 import { Card } from '../components/ui/Card/Card';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
@@ -104,47 +108,25 @@ export const PatientDashboard = () => {
             </div>
           </div>
         );
+      case 'my_visits':
+        return <MyVisits />;
       case 'doctors':
         return <PatientDoctors />;
       case 'appointments':
         return <PatientAppointments />;
       case 'prescriptions':
-        return (
-          <div className="space-y-4 animate-fade-in">
-            <h2 className="text-xl font-bold text-slate-900">My Remedies & Prescriptions</h2>
-            <p className="text-xs text-slate-500">Track and view dilution drops and prescription details requested by your doctor.</p>
-            <div className="bg-white p-8 border border-slate-200 rounded-lg text-center text-slate-500 text-sm">
-              Your prescription log will be displayed here in Phase 4.
-            </div>
-          </div>
-        );
+        return <PatientPrescriptions />;
       case 'reports':
-        return (
-          <div className="space-y-4 animate-fade-in">
-            <h2 className="text-xl font-bold text-slate-900">Lab & Treatment Reports</h2>
-            <p className="text-xs text-slate-500">View diagnostic tests and digital assessment folders.</p>
-            <div className="bg-white p-8 border border-slate-200 rounded-lg text-center text-slate-500 text-sm">
-              Clinical reports repository will be enabled in Phase 4.
-            </div>
-          </div>
-        );
+        return <PatientReports />;
       case 'followups':
-        return (
-          <div className="space-y-4 animate-fade-in">
-            <h2 className="text-xl font-bold text-slate-900">Follow-Up Consultations Planner</h2>
-            <p className="text-xs text-slate-500">Schedule check-ups and treatment assessments.</p>
-            <div className="bg-white p-8 border border-slate-200 rounded-lg text-center text-slate-500 text-sm">
-              Chronological follow-up bookings will be enabled in Phase 4.
-            </div>
-          </div>
-        );
+        return <PatientFollowUps />;
       case 'notifications':
         return (
           <div className="space-y-4 animate-fade-in">
             <h2 className="text-xl font-bold text-slate-900">System Alerts & Notifications</h2>
             <p className="text-xs text-slate-500">Stay updated on approved schedules and dilution inventory levels.</p>
             <div className="bg-white p-8 border border-slate-200 rounded-lg text-center text-slate-500 text-sm">
-              Real-time SMS and push notifications logs will be shown in Phase 4.
+              No new alerts or notifications. You are all set!
             </div>
           </div>
         );

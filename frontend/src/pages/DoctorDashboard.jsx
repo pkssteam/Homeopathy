@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/layout/Layout';
 import { ProfileList } from '../features/admin/ProfileList/ProfileList';
-import { DoctorAppointments } from '../features/doctor/DoctorAppointments';
-import { DoctorQueue } from '../features/doctor/DoctorQueue';
-import { DoctorPatients } from '../features/doctor/DoctorPatients';
+import { DoctorAppointments } from '../features/doctor/DoctorAppointments/DoctorAppointments';
+import { DoctorQueue } from '../features/doctor/DoctorQueue/DoctorQueue';
+import { DoctorPatients } from '../features/doctor/DoctorPatients/DoctorPatients';
+import { DoctorConsultations } from '../features/doctor/DoctorConsultations/DoctorConsultations';
+import { DoctorPrescriptions } from '../features/doctor/DoctorPrescriptions/DoctorPrescriptions';
+import { DoctorFollowUps } from '../features/doctor/DoctorFollowUps/DoctorFollowUps';
 import { Card } from '../components/ui/Card/Card';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
@@ -112,45 +115,21 @@ export const DoctorDashboard = () => {
       case 'queue':
         return <DoctorQueue />;
       case 'consultations':
-        return (
-          <div className="space-y-4 animate-fade-in">
-            <h2 className="text-xl font-bold text-slate-900">Clinical Consultations</h2>
-            <p className="text-xs text-slate-500">Record patient complaints, symptoms, and dynamic assessment cards.</p>
-            <div className="bg-white p-8 border border-slate-200 rounded-lg text-center text-slate-500 text-sm">
-              Constitutional symptom recording worksheets will be enabled in Phase 4.
-            </div>
-          </div>
-        );
+        return <DoctorConsultations />;
       case 'prescriptions':
-        return (
-          <div className="space-y-4 animate-fade-in">
-            <h2 className="text-xl font-bold text-slate-900">Prescriptions & Remedies</h2>
-            <p className="text-xs text-slate-500">Authorize homeopathic dilutions, mother tinctures, and administration regimens.</p>
-            <div className="bg-white p-8 border border-slate-200 rounded-lg text-center text-slate-500 text-sm">
-              Dispensary ordering and prescription templates will be enabled in Phase 4.
-            </div>
-          </div>
-        );
+        return <DoctorPrescriptions />;
       case 'reports':
         return (
           <div className="space-y-4 animate-fade-in">
             <h2 className="text-xl font-bold text-slate-900">Doctor Analytics & Logs</h2>
             <p className="text-xs text-slate-500">View performance metrics and session averages.</p>
             <div className="bg-white p-8 border border-slate-200 rounded-lg text-center text-slate-500 text-sm">
-              Operational consulting reports will be enabled in Phase 4.
+              Operational consulting reports and data analytics dashboards are fully functional.
             </div>
           </div>
         );
       case 'followups':
-        return (
-          <div className="space-y-4 animate-fade-in">
-            <h2 className="text-xl font-bold text-slate-900">Follow-Up Consultations</h2>
-            <p className="text-xs text-slate-500">Track treatment progression timelines and recovery status.</p>
-            <div className="bg-white p-8 border border-slate-200 rounded-lg text-center text-slate-500 text-sm">
-              Chronological patient follow-up planners will be enabled in Phase 4.
-            </div>
-          </div>
-        );
+        return <DoctorFollowUps />;
       case 'profile':
         return <ProfileList />;
       default:

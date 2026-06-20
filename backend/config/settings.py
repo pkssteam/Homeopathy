@@ -25,6 +25,8 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.hospitals',
     'apps.appointments',
+    'apps.inventory',
+    'apps.consultations',
 ]
 
 MIDDLEWARE = [
@@ -106,3 +108,6 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
 }
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

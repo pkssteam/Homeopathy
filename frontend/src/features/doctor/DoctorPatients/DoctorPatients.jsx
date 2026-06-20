@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { api } from '../../services/api';
-import { Table } from '../../components/ui/Table/Table';
-import { Badge } from '../../components/ui/Badge/Badge';
-import { Button } from '../../components/ui/Button/Button';
+import { api } from '../../../services/api';
+import { Table } from '../../../components/ui/Table/Table';
+import { Badge } from '../../../components/ui/Badge/Badge';
+import { Button } from '../../../components/ui/Button/Button';
 import { RefreshCw, Users, Search } from 'lucide-react';
+import './DoctorPatients.css';
 
 export const DoctorPatients = () => {
   const [patients, setPatients] = useState([]);
@@ -62,7 +63,7 @@ export const DoctorPatients = () => {
               placeholder="Search patients..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 py-1.5 w-full text-sm rounded border border-slate-200"
+              className="pl-9 py-1.5 w-full text-xs rounded border border-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 font-medium"
             />
           </div>
           <Button size="md" variant="secondary" onClick={fetchData}>
@@ -91,8 +92,8 @@ export const DoctorPatients = () => {
         <Table headers={['Full Name', 'Email Address', 'Phone Number', 'Status', 'Date Registered']}>
           {filteredPatients.map((p) => (
             <tr key={p.id} className="hover:bg-slate-50/50">
-              <td className="px-4 py-3 font-semibold text-slate-800 text-sm">{p.full_name}</td>
-              <td className="px-4 py-3 text-slate-650 text-xs">{p.email}</td>
+              <td className="px-4 py-3 font-semibold text-slate-805 text-sm">{p.full_name}</td>
+              <td className="px-4 py-3 text-slate-655 text-xs">{p.email}</td>
               <td className="px-4 py-3 text-slate-600 text-xs">{p.phone || '-'}</td>
               <td className="px-4 py-3">
                 <Badge variant={p.is_active ? 'success' : 'gray'}>

@@ -7,7 +7,7 @@ from .serializers import (
     UserSerializer, UserRegisterSerializer, UserUpdateSerializer,
     CustomTokenObtainPairSerializer, DoctorProfileSerializer, PatientProfileSerializer
 )
-from core.permissions.permissions import IsAdminRole
+from core.permissions.permissions import IsAdminRole, IsAdminOrDoctor
 
 
 # ─── JWT Login ────────────────────────────────────────────────────────────────
@@ -37,8 +37,12 @@ class UserViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_permissions(self):
-        if self.action in ['me', 'change_password']:
+        if self.action in ['me', 'change_password', 'retrieve']:
             return [permissions.IsAuthenticated()]
+        if self.action == 'list':
+            role = self.request.query_params.get('role')
+            if role in ['DOCTOR', 'PATIENT']:
+                return [permissions.IsAuthenticated()]
         return [IsAdminRole()]
 
     @action(detail=False, methods=['get', 'put', 'patch'])
@@ -103,7 +107,7 @@ class DoctorViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_permissions(self):
-        if self.action in ['me', 'complete_profile']:
+        if self.action in ['me', 'complete_profile', 'list', 'retrieve']:
             return [permissions.IsAuthenticated()]
         return [IsAdminRole()]
 
@@ -168,6 +172,8 @@ class PatientViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['me', 'complete_profile']:
             return [permissions.IsAuthenticated()]
+        if self.action in ['list', 'retrieve']:
+            return [IsAdminOrDoctor()]
         return [IsAdminRole()]
 
     @action(detail=False, methods=['get'])

@@ -3,9 +3,12 @@ const BASE_URL = 'http://localhost:8000/api';
 async function request(endpoint, options = {}) {
   const token = localStorage.getItem('hms_access_token');
   const headers = {
-    'Content-Type': 'application/json',
     ...options.headers,
   };
+
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
@@ -310,6 +313,85 @@ export const api = {
     return await request('/patients/complete_profile/', {
       method: 'POST',
       body: JSON.stringify(profileData),
+    });
+  },
+
+  // ─── Inventory Management ───
+  getInventory: async () => {
+    return await request('/inventory/');
+  },
+
+  updateStock: async (id, stock) => {
+    return await request(`/inventory/${id}/adjust_stock/`, {
+      method: 'POST',
+      body: JSON.stringify({ stock }),
+    });
+  },
+
+  deleteInventoryItem: async (id) => {
+    return await request(`/inventory/${id}/`, {
+      method: 'DELETE',
+    });
+  },
+
+  deleteAllInventory: async () => {
+    return await request('/inventory/delete_all/', {
+      method: 'DELETE',
+    });
+  },
+
+  // ─── Consultation & Prescriptions ───
+  getPrescriptions: async () => {
+    return await request('/prescriptions/');
+  },
+
+  updatePrescriptionStatus: async (id, status) => {
+    return await request(`/prescriptions/${id}/update_status/`, {
+      method: 'POST',
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  deleteAllPrescriptions: async () => {
+    return await request('/prescriptions/delete_all/', {
+      method: 'DELETE',
+    });
+  },
+
+  getConsultations: async (params = {}) => {
+    let query = '';
+    const searchParams = new URLSearchParams();
+    if (params.patient_id) searchParams.append('patient_id', params.patient_id);
+    if (params.doctor_id) searchParams.append('doctor_id', params.doctor_id);
+    if (params.appointment_id) searchParams.append('appointment_id', params.appointment_id);
+    const queryString = searchParams.toString();
+    if (queryString) query = `?${queryString}`;
+    return await request(`/consultations/${query}`);
+  },
+
+  createConsultation: async (consultationData) => {
+    return await request('/consultations/', {
+      method: 'POST',
+      body: JSON.stringify(consultationData),
+    });
+  },
+
+  uploadConsultationReport: async (consultationId, formData) => {
+    return await request(`/consultations/${consultationId}/upload_report/`, {
+      method: 'POST',
+      body: formData,
+    });
+  },
+
+  deleteConsultation: async (id) => {
+    return await request(`/consultations/${id}/`, {
+      method: 'DELETE',
+    });
+  },
+
+  deleteAllConsultations: async () => {
+    return await request('/consultations/delete_all/', {
+      method: 'DELETE',
     });
   },
 };

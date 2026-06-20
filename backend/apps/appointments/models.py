@@ -39,8 +39,41 @@ class Appointment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        db_table = 'appointments'
+
     def __str__(self):
         return f"Appointment {self.token_number or 'Pending'} - {self.patient.full_name} with {self.doctor.full_name}"
+
+    def save(self, *args, **kwargs):
+        # Generate token number if status is Approved and not already set
+        if self.status == 'Approved' and not self.token_number:
+            from django.db.models import Max
+            max_token = Appointment.objects.filter(
+                doctor=self.doctor,
+                appointment_date=self.appointment_date,
+                token_number__isnull=False
+            ).aggregate(Max('token_number'))['token_number__max'] or 0
+            self.token_number = max_token + 1
+
+        super().save(*args, **kwargs)
+
+        # Ensure PatientQueue entry exists if Approved
+        if self.status == 'Approved':
+            from django.db.models import Max
+            from apps.appointments.models import PatientQueue
+            
+            if not PatientQueue.objects.filter(appointment=self).exists():
+                max_queue = PatientQueue.objects.filter(
+                    appointment__doctor=self.doctor,
+                    appointment__appointment_date=self.appointment_date
+                ).aggregate(Max('queue_number'))['queue_number__max'] or 0
+                
+                PatientQueue.objects.create(
+                    appointment=self,
+                    queue_number=max_queue + 1,
+                    current_status='Waiting'
+                )
 
 class PatientQueue(models.Model):
     STATUS_CHOICES = (
@@ -58,6 +91,9 @@ class PatientQueue(models.Model):
     completed_time = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'patient_queue'
 
     def __str__(self):
         return f"Queue {self.queue_number} - Status: {self.current_status} (Appt: {self.appointment.id})"

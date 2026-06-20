@@ -310,37 +310,42 @@
 
 /* Column dimensions & alignments */
 .col-token {
-  width: 10%;
+  width: 8%;
   text-align: center;
 }
 
 .col-patient {
-  width: 20%;
+  width: 16%;
   text-align: left;
 }
 
 .col-doctor {
-  width: 18%;
+  width: 15%;
   text-align: left;
 }
 
 .col-datetime {
-  width: 18%;
+  width: 15%;
   text-align: center;
 }
 
 .col-reason {
-  width: 18%;
+  width: 16%;
+  text-align: left;
+}
+
+.col-bookedby {
+  width: 14%;
   text-align: left;
 }
 
 .col-status {
-  width: 10%;
+  width: 8%;
   text-align: center;
 }
 
 .col-actions {
-  width: 12%;
+  width: 8%;
   text-align: center;
 }
 

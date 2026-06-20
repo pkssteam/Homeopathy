@@ -1,0 +1,323 @@
+/* ConsultationWorkspace.css */
+
+.workspace-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 1rem;
+}
+
+/* Stepper styling */
+.stepper-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  margin-bottom: 0.5rem;
+}
+
+.stepper-steps-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 56rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.stepper-line {
+  position: absolute;
+  top: 1.25rem;
+  left: 2rem;
+  right: 2rem;
+  height: 4px;
+  background-color: #f1f5f9;
+  transform: translateY(-50%);
+  z-index: 0;
+  border-radius: 9999px;
+}
+
+.stepper-progress {
+  height: 100%;
+  background-color: #10b981;
+  transition: width 0.3s ease;
+  border-radius: 9999px;
+}
+
+.step-button {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.step-icon-circle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  border: 2px solid #e2e8f0;
+  background-color: #ffffff;
+}
+
+.step-button.completed .step-icon-circle {
+  background-color: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.step-button.active .step-icon-circle {
+  background-color: #ffffff;
+  border-color: #10b981;
+  color: #059669;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  outline: 4px solid #ecfdf5;
+}
+
+.step-button.inactive .step-icon-circle {
+  color: #94a3b8;
+}
+
+.step-label {
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.step-button.active .step-label {
+  color: #047857;
+  font-weight: 800;
+}
+
+.step-button.completed .step-label {
+  color: #475569;
+}
+
+.step-button.inactive .step-label {
+  color: #94a3b8;
+}
+
+/* Stage Cards Modernized Look */
+.stage-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stage-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.stage-card-title-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Timeline chain styling */
+.history-timeline {
+  position: relative;
+  padding-left: 2.5rem;
+  margin-top: 1rem;
+}
+
+.history-timeline-line {
+  position: absolute;
+  left: 0.85rem;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 2px;
+  background-color: #e2e8f0;
+}
+
+.history-timeline-node {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.history-timeline-node:last-child {
+  margin-bottom: 0;
+}
+
+.history-node-bullet {
+  position: absolute;
+  left: -2.15rem;
+  top: 0.5rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  border: 2px solid #10b981;
+  background-color: #ffffff;
+  z-index: 10;
+  transition: background-color 0.2s ease;
+}
+
+.history-timeline-node.expanded .history-node-bullet {
+  background-color: #10b981;
+}
+
+.history-node-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background-color: #ffffff;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.history-node-card.expanded {
+  border-color: #10b981;
+  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.08), 0 2px 4px -1px rgba(16, 185, 129, 0.03);
+}
+
+.history-node-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  cursor: pointer;
+  user-select: none;
+  background-color: #fafafa;
+  transition: background-color 0.2s ease;
+}
+
+.history-node-header:hover {
+  background-color: #f4f6f8;
+}
+
+.history-node-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.history-node-date {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.history-node-complaint {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.history-node-chevron {
+  color: #94a3b8;
+  transition: transform 0.2s ease;
+}
+
+.history-node-card.expanded .history-node-chevron {
+  transform: rotate(180deg);
+  color: #10b981;
+}
+
+.history-node-body {
+  padding: 1.25rem;
+  border-top: 1px solid #f1f5f9;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Remedy prescribed timing & cards */
+.remedy-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .remedy-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.remedy-card {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+/* Modern inputs & forms */
+.modern-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.modern-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.modern-input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.625rem;
+  font-size: 0.75rem;
+  outline: none;
+  background-color: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.modern-input:focus {
+  border-color: #10b981;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 1px #10b981;
+}
+
+.modern-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* bottom navigation bar styling */
+.nav-buttons-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  margin-top: 1.5rem;
+}

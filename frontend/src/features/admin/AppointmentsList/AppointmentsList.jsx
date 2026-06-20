@@ -105,10 +105,12 @@ export const AppointmentsList = () => {
   }, [statusFilter, dateFilter]);
 
   const openAddModal = () => {
+    const defaultHospitalId = hospitals[0]?.id || '';
+    const hospitalDoctors = doctors.filter(d => d.hospital?.id === defaultHospitalId);
     setFormData({
-      hospital_id: hospitals[0]?.id || '',
+      hospital_id: defaultHospitalId,
       patient_id: patients[0]?.id || '',
-      doctor_id: doctors[0]?.id || '',
+      doctor_id: hospitalDoctors[0]?.id || '',
       appointment_date: new Date().toISOString().split('T')[0],
       appointment_time: '10:00',
       reason: '',
@@ -137,7 +139,16 @@ export const AppointmentsList = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    if (name === 'hospital_id') {
+      const hospitalDoctors = doctors.filter(d => d.hospital?.id === value);
+      setFormData({
+        ...formData,
+        hospital_id: value,
+        doctor_id: hospitalDoctors[0]?.id || ''
+      });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
     if (formErrors[name]) {
       setFormErrors({ ...formErrors, [name]: '' });
     }
@@ -387,6 +398,7 @@ export const AppointmentsList = () => {
                   <th className="hospital-th col-doctor">DOCTOR</th>
                   <th className="hospital-th col-datetime">DATE & TIME</th>
                   <th className="hospital-th col-reason">REASON FOR VISIT</th>
+                  <th className="hospital-th col-bookedby">BOOKED BY</th>
                   <th className="hospital-th col-status">STATUS</th>
                   <th className="hospital-th col-actions">ACTIONS</th>
                 </tr>
@@ -423,6 +435,19 @@ export const AppointmentsList = () => {
                       </td>
                       <td className="hospital-td col-reason">
                         <span className="text-xs text-slate-600 block truncate max-w-xs">{appt.reason || '-'}</span>
+                      </td>
+                      <td className="hospital-td col-bookedby">
+                        {appt.created_by_detail ? (
+                          <div className="flex flex-col">
+                            <span className="text-xs font-semibold text-slate-700">{appt.created_by_detail.full_name}</span>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">
+                              {appt.created_by_detail.role === 'ADMIN' ? 'Admin' :
+                               appt.created_by_detail.role === 'DOCTOR' ? 'Doctor' : 'Patient'}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-450 font-medium">System</span>
+                        )}
                       </td>
                       <td className="hospital-td col-status">
                         <Badge variant={statusVariant}>
@@ -560,19 +585,6 @@ export const AppointmentsList = () => {
               required
             />
             <Select
-              label="Select Doctor"
-              name="doctor_id"
-              value={formData.doctor_id}
-              onChange={handleInputChange}
-              options={doctors.map(d => ({ value: d.id, label: d.full_name }))}
-              error={formErrors.doctor_id}
-              disabled={isSaving}
-              required
-            />
-          </FormGroup>
-
-          <FormGroup>
-            <Select
               label="Select Hospital Branch"
               name="hospital_id"
               value={formData.hospital_id}
@@ -580,6 +592,23 @@ export const AppointmentsList = () => {
               options={hospitals.map(h => ({ value: h.id, label: `${h.hospital_name} (${h.branch_name})` }))}
               error={formErrors.hospital_id}
               disabled={isSaving}
+              required
+            />
+          </FormGroup>
+
+          <FormGroup>
+            <Select
+              label="Select Doctor"
+              name="doctor_id"
+              value={formData.doctor_id}
+              onChange={handleInputChange}
+              options={
+                doctors.filter(d => d.hospital?.id === formData.hospital_id).length > 0
+                  ? doctors.filter(d => d.hospital?.id === formData.hospital_id).map(d => ({ value: d.id, label: d.full_name }))
+                  : [{ value: '', label: 'No doctors in this branch' }]
+              }
+              error={formErrors.doctor_id}
+              disabled={isSaving || doctors.filter(d => d.hospital?.id === formData.hospital_id).length === 0}
               required
             />
             <Select

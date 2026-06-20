@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { api } from '../../services/api';
-import { Table } from '../../components/ui/Table/Table';
-import { Badge } from '../../components/ui/Badge/Badge';
-import { Button } from '../../components/ui/Button/Button';
+import { api } from '../../../services/api';
+import { Table } from '../../../components/ui/Table/Table';
+import { Badge } from '../../../components/ui/Badge/Badge';
+import { Button } from '../../../components/ui/Button/Button';
 import { RefreshCw, Play, CheckCircle, PhoneCall, UserCheck } from 'lucide-react';
+import { ConsultationWorkspace } from '../ConsultationWorkspace/ConsultationWorkspace';
+import './DoctorQueue.css';
 
 export const DoctorQueue = () => {
   const [queues, setQueues] = useState([]);
+  const [activeConsultationEntry, setActiveConsultationEntry] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const today = new Date().toISOString().split('T')[0];
@@ -17,6 +20,11 @@ export const DoctorQueue = () => {
     try {
       const data = await api.getQueue({ date: today });
       setQueues(data);
+      // Auto-open workspace if a consultation is already in progress
+      const inProgress = data.find(q => q.current_status === 'In Progress');
+      if (inProgress) {
+        setActiveConsultationEntry(inProgress);
+      }
     } catch (err) {
       console.error(err);
       setError(err.message || 'Failed to fetch doctor queue.');
@@ -41,7 +49,15 @@ export const DoctorQueue = () => {
   const handleStartConsultation = async (id) => {
     try {
       await api.startConsultation(id);
-      fetchData();
+      // Fetch queue details and show workspace immediately
+      const data = await api.getQueue({ date: today });
+      setQueues(data);
+      const inProgress = data.find(q => q.id === id);
+      if (inProgress) {
+        setActiveConsultationEntry(inProgress);
+      } else {
+        fetchData();
+      }
     } catch (err) {
       alert(err.message || 'Failed to start consultation.');
     }
@@ -50,11 +66,25 @@ export const DoctorQueue = () => {
   const handleComplete = async (id) => {
     try {
       await api.completeQueue(id);
+      setActiveConsultationEntry(null);
       fetchData();
     } catch (err) {
       alert(err.message || 'Failed to complete consultation.');
     }
   };
+
+  if (activeConsultationEntry) {
+    return (
+      <ConsultationWorkspace 
+        queueEntry={activeConsultationEntry} 
+        onBack={() => setActiveConsultationEntry(null)} 
+        onComplete={() => {
+          setActiveConsultationEntry(null);
+          fetchData();
+        }}
+      />
+    );
+  }
 
   // Find currently active patient (status is 'Called' or 'In Progress')
   const activeEntry = queues.find(q => q.current_status === 'Called' || q.current_status === 'In Progress');
@@ -98,10 +128,10 @@ export const DoctorQueue = () => {
             <h3 className="text-lg font-bold text-slate-900">
               {activeEntry.appointment?.patient?.full_name} (Token #{activeEntry.appointment?.token_number})
             </h3>
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-slate-655">
               <strong>Reason:</strong> {activeEntry.appointment?.reason || 'General homeopathy consultation'}
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-555">
               Status: <span className="font-semibold text-medical-700">{activeEntry.current_status}</span>
             </p>
           </div>
@@ -119,7 +149,7 @@ export const DoctorQueue = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 text-center text-slate-500 text-sm">
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 text-center text-slate-555 text-sm font-medium">
           No patient currently in consultation. Call the next patient in queue below.
         </div>
       )}
@@ -132,7 +162,7 @@ export const DoctorQueue = () => {
         </h3>
         
         {waitingEntries.length === 0 ? (
-          <p className="text-xs text-slate-500 bg-white border border-slate-200 p-4 rounded text-center">
+          <p className="text-xs text-slate-500 bg-white border border-slate-200 p-4 rounded text-center font-medium">
             No patients currently waiting in queue.
           </p>
         ) : (
@@ -140,9 +170,9 @@ export const DoctorQueue = () => {
             {waitingEntries.map((item) => (
               <tr key={item.id} className="hover:bg-slate-50/50">
                 <td className="px-4 py-3 font-bold text-slate-700 text-sm">#{item.queue_number}</td>
-                <td className="px-4 py-3 text-slate-500 text-xs">Token {item.appointment?.token_number}</td>
+                <td className="px-4 py-3 text-slate-500 text-xs font-semibold">Token {item.appointment?.token_number}</td>
                 <td className="px-4 py-3 font-semibold text-slate-850 text-sm">{item.appointment?.patient?.full_name}</td>
-                <td className="px-4 py-3 text-slate-600 text-xs truncate max-w-xs">{item.appointment?.reason || '-'}</td>
+                <td className="px-4 py-3 text-slate-655 text-xs truncate max-w-xs">{item.appointment?.reason || '-'}</td>
                 <td className="px-4 py-3">
                   <Button size="sm" variant="outline" onClick={() => handleCall(item.id)} className="flex items-center gap-1">
                     <PhoneCall size={12} />
@@ -163,12 +193,12 @@ export const DoctorQueue = () => {
             {completedEntries.map((item) => (
               <tr key={item.id} className="hover:bg-slate-50/50 bg-slate-50/20">
                 <td className="px-4 py-3 font-bold text-slate-500 text-sm">#{item.queue_number}</td>
-                <td className="px-4 py-3 text-slate-400 text-xs">Token {item.appointment?.token_number}</td>
-                <td className="px-4 py-3 text-slate-650 text-sm">{item.appointment?.patient?.full_name}</td>
-                <td className="px-4 py-3 text-slate-500 text-xs">
+                <td className="px-4 py-3 text-slate-400 text-xs font-semibold">Token {item.appointment?.token_number}</td>
+                <td className="px-4 py-3 text-slate-655 text-sm">{item.appointment?.patient?.full_name}</td>
+                <td className="px-4 py-3 text-slate-500 text-xs font-semibold">
                   {item.called_time ? new Date(item.called_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
                 </td>
-                <td className="px-4 py-3 text-slate-500 text-xs">
+                <td className="px-4 py-3 text-slate-500 text-xs font-semibold">
                   {item.completed_time ? new Date(item.completed_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'}
                 </td>
               </tr>
