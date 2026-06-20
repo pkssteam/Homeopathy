@@ -31,6 +31,10 @@ class AppointmentMinimalSerializer(serializers.ModelSerializer):
         fields = ['id', 'appointment_date', 'appointment_time', 'status', 'booked_by_name', 'booked_by_role', 'created_at']
 
 class ConsultationSerializer(serializers.ModelSerializer):
+    appointment = serializers.PrimaryKeyRelatedField(
+        queryset=Appointment.objects.all(),
+        validators=[]
+    )
     patient_detail = UserSerializer(source='patient', read_only=True)
     doctor_detail = UserSerializer(source='doctor', read_only=True)
     appointment_detail = AppointmentMinimalSerializer(source='appointment', read_only=True)

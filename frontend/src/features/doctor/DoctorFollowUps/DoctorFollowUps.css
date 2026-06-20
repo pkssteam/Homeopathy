@@ -1,1 +1,37 @@
 /* DoctorFollowUps.css */
+.followups-detail-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .followups-detail-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.followup-detail-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.remedy-list-container {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 1rem;
+}
+
+.followup-badge-upcoming {
+  background-color: #ebf5ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.followup-badge-past {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}

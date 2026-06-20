@@ -1,1 +1,144 @@
 /* DoctorPatients.css */
+.patient-detail-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .patient-detail-container {
+    grid-template-columns: 350px 1fr;
+  }
+}
+
+.patient-info-sidebar {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.history-timeline {
+  position: relative;
+  padding-left: 2rem;
+  border-left: 2px solid #e2e8f0;
+  margin-left: 0.5rem;
+}
+
+.history-timeline-node {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.history-timeline-node::before {
+  content: '';
+  position: absolute;
+  left: -2.35rem;
+  top: 1rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #cbd5e1;
+  border: 2px solid #ffffff;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.history-timeline-node.expanded::before {
+  background-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25);
+  transform: scale(1.2);
+}
+
+.history-node-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.history-node-card.expanded {
+  border-color: #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.05);
+}
+
+.history-node-header {
+  padding: 1rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background-color: #fafbfb;
+  user-select: none;
+  gap: 1rem;
+}
+
+.history-node-header:hover {
+  background-color: #f3f4f6;
+}
+
+.history-node-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+@media (min-width: 640px) {
+  .history-node-title {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.history-node-date {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.85rem;
+}
+
+.history-node-complaint {
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.history-node-chevron {
+  color: #64748b;
+  transition: transform 0.2s ease;
+}
+
+.history-node-body {
+  padding: 1.25rem;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.remedy-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .remedy-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.remedy-card {
+  background-color: #f0fdf4;
+  border: 1px solid #dcfce7;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}

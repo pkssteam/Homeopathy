@@ -70,18 +70,19 @@ class ConsultationPrescription(models.Model):
 
     def __str__(self):
         return f"{self.medicine_name} - {self.dosage} for {self.duration}"
-
 def get_report_upload_path(instance, filename):
     import os
     from django.utils import timezone
     
     consultation = instance.consultation
-    hospital_name = consultation.appointment.hospital.name if consultation.appointment and consultation.appointment.hospital else "Unknown_Hospital"
+    hospital_name = consultation.appointment.hospital.hospital_name if consultation.appointment and consultation.appointment.hospital else "Unknown_Hospital"
     doctor_name = consultation.doctor.full_name if consultation.doctor else "Unknown_Doctor"
     patient_name = consultation.patient.full_name if consultation.patient else "Unknown_Patient"
     date_str = (consultation.created_at or timezone.now()).strftime('%Y-%m-%d')
     
     def sanitize_path_part(part):
+        if not part:
+            return "Unknown"
         return "".join([c for c in part if c.isalpha() or c.isdigit() or c in " _-"]).strip()
         
     hospital_folder = sanitize_path_part(hospital_name)

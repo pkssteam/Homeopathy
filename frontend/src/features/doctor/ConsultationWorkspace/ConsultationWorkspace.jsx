@@ -189,7 +189,7 @@ export const ConsultationWorkspace = ({ queueEntry, onBack, onComplete }) => {
           reportFormData.append('consultation', consultationResult.id);
           reportFormData.append('report_name', report.name);
           reportFormData.append('report_file', report.file);
-          await api.uploadConsultationReport(reportFormData);
+          await api.uploadConsultationReport(consultationResult.id, reportFormData);
         }
       }
 
