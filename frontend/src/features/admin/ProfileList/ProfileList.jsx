@@ -28,12 +28,44 @@ export const ProfileList = () => {
   const [specialization, setSpecialization] = useState(user?.doctor_profile?.specialization || '');
   const [qualification, setQualification] = useState(user?.doctor_profile?.qualification || '');
   const [experienceYears, setExperienceYears] = useState(user?.doctor_profile?.experience_years || '');
-  const [availableTimeStart, setAvailableTimeStart] = useState(user?.doctor_profile?.available_time_start || '');
-  const [availableTimeEnd, setAvailableTimeEnd] = useState(user?.doctor_profile?.available_time_end || '');
+  const [timeSlots, setTimeSlots] = useState(() => {
+    const timeVal = user?.doctor_profile?.available_time || '';
+    if (timeVal.startsWith('[')) {
+      try {
+        return JSON.parse(timeVal);
+      } catch (e) {
+        // Fallback
+      }
+    }
+    if (timeVal) {
+      const parts = timeVal.split(' to ');
+      if (parts.length === 2) {
+        return [{ start: parts[0], end: parts[1] }];
+      }
+      return [{ start: timeVal, end: '' }];
+    }
+    return [{ start: '', end: '' }];
+  });
   const [availableDays, setAvailableDays] = useState(() => {
     const days = user?.doctor_profile?.available_days || '';
     return days ? days.split(',').map(d => d.trim()) : [];
   });
+
+  const handleAddSlot = () => {
+    setTimeSlots([...timeSlots, { start: '', end: '' }]);
+  };
+
+  const handleRemoveSlot = (index) => {
+    if (timeSlots.length > 1) {
+      setTimeSlots(timeSlots.filter((_, idx) => idx !== index));
+    }
+  };
+
+  const handleSlotChange = (index, field, value) => {
+    const newSlots = [...timeSlots];
+    newSlots[index] = { ...newSlots[index], [field]: value };
+    setTimeSlots(newSlots);
+  };
 
   // Patient profile fields
   const [gender, setGender] = useState(user?.patient_profile?.gender || 'Male');
@@ -94,7 +126,8 @@ export const ProfileList = () => {
 
   const handleSaveDoctorProfile = async (e) => {
     e.preventDefault();
-    if (!specialization || !qualification || !experienceYears || !availableTimeStart || !availableTimeEnd || availableDays.length === 0) {
+    const hasEmptySlot = timeSlots.some(slot => !slot.start || !slot.end);
+    if (!specialization || !qualification || !experienceYears || hasEmptySlot || availableDays.length === 0) {
       toast.error('Please fill in all required professional fields.');
       return;
     }
@@ -104,8 +137,7 @@ export const ProfileList = () => {
         specialization: specialization.trim(),
         qualification: qualification.trim(),
         experience_years: parseInt(experienceYears, 10),
-        available_time_start: availableTimeStart,
-        available_time_end: availableTimeEnd,
+        available_time: JSON.stringify(timeSlots),
         available_days: availableDays.join(', '),
       });
       // Update our auth context
@@ -387,30 +419,54 @@ export const ProfileList = () => {
                   </div>
                 </div>
 
-                <div className="profile-field">
-                  <label>Consultation Timing Hours *</label>
-                  <div className="profile-time-row">
-                    <div className="profile-input-wrapper" style={{ flex: 1 }}>
-                      <Clock className="profile-input-icon" size={16} />
-                      <input
-                        type="time"
-                        value={availableTimeStart}
-                        onChange={(e) => setAvailableTimeStart(e.target.value)}
-                        required
-                        disabled={isSubmitting}
-                      />
-                    </div>
-                    <span className="profile-time-sep">to</span>
-                    <div className="profile-input-wrapper" style={{ flex: 1 }}>
-                      <Clock className="profile-input-icon" size={16} />
-                      <input
-                        type="time"
-                        value={availableTimeEnd}
-                        onChange={(e) => setAvailableTimeEnd(e.target.value)}
-                        required
-                        disabled={isSubmitting}
-                      />
-                    </div>
+                <div className="profile-field profile-field-full">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ margin: 0 }}>Consultation Timing Hours *</label>
+                    <button
+                      type="button"
+                      onClick={handleAddSlot}
+                      className="profile-add-slot-btn"
+                      disabled={isSubmitting}
+                    >
+                      + Add Slot
+                    </button>
+                  </div>
+                  <div className="profile-slots-list">
+                    {timeSlots.map((slot, index) => (
+                      <div key={index} className="profile-time-row" style={{ marginTop: '0.5rem' }}>
+                        <div className="profile-input-wrapper" style={{ flex: 1 }}>
+                          <Clock className="profile-input-icon" size={16} />
+                          <input
+                            type="time"
+                            value={slot.start}
+                            onChange={(e) => handleSlotChange(index, 'start', e.target.value)}
+                            required
+                            disabled={isSubmitting}
+                          />
+                        </div>
+                        <span className="profile-time-sep">to</span>
+                        <div className="profile-input-wrapper" style={{ flex: 1 }}>
+                          <Clock className="profile-input-icon" size={16} />
+                          <input
+                            type="time"
+                            value={slot.end}
+                            onChange={(e) => handleSlotChange(index, 'end', e.target.value)}
+                            required
+                            disabled={isSubmitting}
+                          />
+                        </div>
+                        {timeSlots.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSlot(index)}
+                            className="profile-remove-slot-btn"
+                            disabled={isSubmitting}
+                          >
+                            &times;
+                          </button>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
 

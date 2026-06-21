@@ -14,12 +14,15 @@ import { ShieldCheck, Calendar, Activity, Users } from 'lucide-react';
 import { ProfileCompleteModal } from '../components/ui/ProfileCompleteModal/ProfileCompleteModal';
 
 export const DoctorDashboard = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => {
+    return sessionStorage.getItem('active_tab_doctor') || 'dashboard';
+  });
   const { user } = useAuth();
   const [todayApptsCount, setTodayApptsCount] = useState(0);
   const [waitingCount, setWaitingCount] = useState(0);
 
   useEffect(() => {
+    sessionStorage.setItem('active_tab_doctor', activeTab);
     if (activeTab === 'dashboard') {
       const today = new Date().toISOString().split('T')[0];
       api.getAppointments({ date: today }).then(res => setTodayApptsCount(res.length)).catch(console.error);

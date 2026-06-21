@@ -9,7 +9,9 @@ import { api } from '../services/api';
 import { ShieldCheck, Package, Users, FileText, ArrowLeftRight, Bell, AlertTriangle } from 'lucide-react';
 
 export const InventoryDashboard = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => {
+    return sessionStorage.getItem('active_tab_inventory') || 'dashboard';
+  });
   const { user } = useAuth();
   
   // Mock inventories
@@ -25,6 +27,7 @@ export const InventoryDashboard = () => {
   const [doctorsList, setDoctorsList] = useState([]);
   
   useEffect(() => {
+    sessionStorage.setItem('active_tab_inventory', activeTab);
     if (activeTab === 'assigned_doctors') {
       api.getUsers('DOCTOR').then(res => setDoctorsList(res)).catch(console.error);
     }

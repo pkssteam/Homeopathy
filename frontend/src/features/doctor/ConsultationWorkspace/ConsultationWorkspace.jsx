@@ -4,15 +4,17 @@ import { Button } from '../../../components/ui/Button/Button';
 import { Badge } from '../../../components/ui/Badge/Badge';
 import { 
   ArrowLeft, User, Calendar, Activity, FileText, Plus, Trash2, 
-  Search, AlertTriangle, CheckCircle, Download, Clock, Heart, Clipboard, Eye, ShieldAlert,
+  Search, AlertTriangle, CheckCircle, Clock, Heart, Clipboard, Eye, ShieldAlert,
   ChevronDown, ChevronUp
 } from 'lucide-react';
 import './ConsultationWorkspace.css';
+import { ReportViewer } from '../../../components/ui/ReportViewer';
 
 export const ConsultationWorkspace = ({ queueEntry, onBack, onComplete }) => {
   const patient = queueEntry.appointment?.patient;
   const appointment = queueEntry.appointment;
   const patientProfile = patient?.patient_profile || {};
+  const [selectedReport, setSelectedReport] = useState(null);
 
   // Form states
   const [chiefComplaint, setChiefComplaint] = useState('');
@@ -28,8 +30,13 @@ export const ConsultationWorkspace = ({ queueEntry, onBack, onComplete }) => {
   const [selectedMedicine, setSelectedMedicine] = useState(null);
   const [dosage, setDosage] = useState('1-0-1');
   const [duration, setDuration] = useState('5 days');
-  const [instructions, setInstructions] = useState('Before Meal');
+  const [beforeMeal, setBeforeMeal] = useState(true);
+  const [afterMeal, setAfterMeal] = useState(false);
   const [prescribedList, setPrescribedList] = useState([]);
+
+  // Submission resilience states
+  const [createdConsultationId, setCreatedConsultationId] = useState(null);
+  const [uploadedReportIndices, setUploadedReportIndices] = useState([]);
 
   // Report states
   const [reports, setReports] = useState([]);
@@ -106,12 +113,18 @@ export const ConsultationWorkspace = ({ queueEntry, onBack, onComplete }) => {
       return;
     }
 
+    const mealInstructions = [];
+    if (beforeMeal) mealInstructions.push('Before Meal');
+    if (afterMeal) mealInstructions.push('After Meal');
+    const finalInstructions = mealInstructions.length === 2 ? 'Both (Before & After)' : 
+                              mealInstructions.length === 1 ? mealInstructions[0] : 'Before Meal';
+
     setPrescribedList([...prescribedList, {
       medicine_name: medName,
       inventory_item: medId,
       dosage,
       duration,
-      instructions,
+      instructions: finalInstructions,
       stockStatus: selectedMedicine ? selectedMedicine.status : 'Unknown',
       stockQty: selectedMedicine ? selectedMedicine.stock : 0
     }]);
@@ -121,7 +134,8 @@ export const ConsultationWorkspace = ({ queueEntry, onBack, onComplete }) => {
     setSearchQuery('');
     setDosage('1-0-1');
     setDuration('5 days');
-    setInstructions('Before Meal');
+    setBeforeMeal(true);
+    setAfterMeal(false);
   };
 
   const handleRemovePrescription = (index) => {
@@ -163,39 +177,10 @@ export const ConsultationWorkspace = ({ queueEntry, onBack, onComplete }) => {
     setError('');
 
     try {
-      // 1. Submit consultation details
-      const consultationPayload = {
-        appointment: appointment.id,
-        chief_complaint: chiefComplaint,
-        symptoms,
-        diagnosis_notes: diagnosisNotes,
-        consultation_notes: consultationNotes,
-        disease_stage: diseaseStage,
-        prescriptions: prescribedList.map(p => ({
-          medicine_name: p.medicine_name,
-          inventory_item: p.inventory_item,
-          dosage: p.dosage,
-          duration: p.duration,
-          instructions: p.instructions
-        }))
-      };
-
-      const consultationResult = await api.createConsultation(consultationPayload);
-
-      // 2. Upload reports if any
-      if (reports.length > 0) {
-        for (const report of reports) {
-          const reportFormData = new FormData();
-          reportFormData.append('consultation', consultationResult.id);
-          reportFormData.append('report_name', report.name);
-          reportFormData.append('report_file', report.file);
-          await api.uploadConsultationReport(consultationResult.id, reportFormData);
-        }
-      }
-
-      // 3. Create next appointment if scheduled
+      // 1. Create next appointment first if scheduled to obtain its ID
+      let futureAppointmentId = null;
       if (scheduleNext && nextDate) {
-        await api.createAppointment({
+        const apptResult = await api.createAppointment({
           hospital_id: appointment.hospital.id,
           patient_id: patient.id,
           doctor_id: appointment.doctor.id,
@@ -204,6 +189,58 @@ export const ConsultationWorkspace = ({ queueEntry, onBack, onComplete }) => {
           reason: nextReason,
           status: 'Approved' // Pre-approved by doctor
         });
+        if (apptResult && apptResult.id) {
+          futureAppointmentId = apptResult.id;
+        }
+      }
+
+      // 2. Submit consultation details with follow_up info linked to the future appointment
+      let consultationResult;
+      if (createdConsultationId) {
+        consultationResult = { id: createdConsultationId };
+      } else {
+        const consultationPayload = {
+          appointment: appointment.id,
+          chief_complaint: chiefComplaint,
+          symptoms,
+          diagnosis_notes: diagnosisNotes,
+          consultation_notes: consultationNotes,
+          disease_stage: diseaseStage,
+          prescriptions: prescribedList.map(p => ({
+            medicine_name: p.medicine_name,
+            inventory_item: p.inventory_item,
+            dosage: p.dosage,
+            duration: p.duration,
+            instructions: p.instructions
+          }))
+        };
+
+        if (scheduleNext && nextDate) {
+          consultationPayload.follow_up = {
+            next_visit_date: nextDate,
+            follow_up_notes: nextReason,
+            future_appointment: futureAppointmentId
+          };
+        }
+
+        consultationResult = await api.createConsultation(consultationPayload);
+        setCreatedConsultationId(consultationResult.id);
+      }
+
+      // 3. Upload reports if any (with retry support)
+      if (reports.length > 0) {
+        for (let idx = 0; idx < reports.length; idx++) {
+          if (uploadedReportIndices.includes(idx)) continue;
+          
+          const report = reports[idx];
+          const reportFormData = new FormData();
+          reportFormData.append('consultation', consultationResult.id);
+          reportFormData.append('report_name', report.name);
+          reportFormData.append('report_file', report.file);
+          
+          await api.uploadConsultationReport(consultationResult.id, reportFormData);
+          setUploadedReportIndices(prev => [...prev, idx]);
+        }
       }
 
       // 4. Mark active queue entry as completed
@@ -494,16 +531,14 @@ export const ConsultationWorkspace = ({ queueEntry, onBack, onComplete }) => {
                                 <span className="text-indigo-700 font-bold block mb-1.5 uppercase tracking-wider text-[10px]">Consultation Reports</span>
                                 <div className="flex flex-wrap gap-2">
                                   {consult.reports.map(r => (
-                                    <a 
+                                    <button 
                                       key={r.id}
-                                      href={`http://localhost:8000${r.report_file}`} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
+                                      onClick={() => setSelectedReport(r)}
                                       className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition flex items-center gap-1.5"
                                     >
-                                      <Download size={12} />
+                                      <Eye size={12} />
                                       <span>{r.report_name}</span>
-                                    </a>
+                                    </button>
                                   ))}
                                 </div>
                               </div>
@@ -605,7 +640,7 @@ export const ConsultationWorkspace = ({ queueEntry, onBack, onComplete }) => {
                     <Search className="absolute left-3 top-3 text-slate-400" size={14} />
                     <input
                       type="text"
-                      className="modern-input pl-9 font-medium"
+                      className="modern-input modern-input-with-icon font-medium"
                       placeholder="Search remedies..."
                       value={searchQuery}
                       onChange={(e) => {
@@ -665,15 +700,26 @@ export const ConsultationWorkspace = ({ queueEntry, onBack, onComplete }) => {
 
                 <div className="md:col-span-2 modern-input-group">
                   <label className="modern-label">Meal Timing</label>
-                  <select
-                    className="modern-input font-medium cursor-pointer"
-                    value={instructions}
-                    onChange={(e) => setInstructions(e.target.value)}
-                  >
-                    <option value="Before Meal">Before Meal</option>
-                    <option value="After Meal">After Meal</option>
-                    <option value="Both">Both (Before & After)</option>
-                  </select>
+                  <div className="flex gap-2 mt-1">
+                    <label className="flex-1 flex items-center justify-center gap-1 bg-white border border-slate-200 rounded-lg p-2 cursor-pointer select-none hover:bg-slate-50 transition">
+                      <input
+                        type="checkbox"
+                        checked={beforeMeal}
+                        onChange={(e) => setBeforeMeal(e.target.checked)}
+                        className="w-3.5 h-3.5 text-emerald-600 border-slate-350 rounded focus:ring-emerald-500 cursor-pointer"
+                      />
+                      <span className="text-[11px] font-bold text-slate-705">Before</span>
+                    </label>
+                    <label className="flex-1 flex items-center justify-center gap-1 bg-white border border-slate-200 rounded-lg p-2 cursor-pointer select-none hover:bg-slate-50 transition">
+                      <input
+                        type="checkbox"
+                        checked={afterMeal}
+                        onChange={(e) => setAfterMeal(e.target.checked)}
+                        className="w-3.5 h-3.5 text-emerald-600 border-slate-350 rounded focus:ring-emerald-500 cursor-pointer"
+                      />
+                      <span className="text-[11px] font-bold text-slate-750">After</span>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="md:col-span-2">
@@ -943,6 +989,12 @@ export const ConsultationWorkspace = ({ queueEntry, onBack, onComplete }) => {
           )}
         </div>
       </div>
+      <ReportViewer 
+        isOpen={!!selectedReport}
+        onClose={() => setSelectedReport(null)}
+        reportUrl={selectedReport?.report_file}
+        reportName={selectedReport?.report_name}
+      />
     </div>
   );
 };

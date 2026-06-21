@@ -420,3 +420,52 @@
   }
 }
 
+.profile-add-slot-btn {
+  background: transparent;
+  color: var(--primary-color, #0984e3);
+  border: 1.5px solid var(--primary-color, #0984e3);
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.15s ease;
+}
+
+.profile-add-slot-btn:hover {
+  background: var(--primary-light, #eef7ff);
+  box-shadow: 0 2px 6px rgba(9, 132, 227, 0.1);
+}
+
+.profile-remove-slot-btn {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.profile-remove-slot-btn:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+}
+
+.profile-slots-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+

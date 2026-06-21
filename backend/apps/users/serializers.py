@@ -12,8 +12,8 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
         model = Doctor
         fields = [
             'id', 'specialization', 'qualification', 'experience_years',
-            'consultation_fee', 'available_days', 'available_time_start',
-            'available_time_end', 'status', 'created_at', 'updated_at'
+            'consultation_fee', 'available_days', 'available_time',
+            'status', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 

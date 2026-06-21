@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/layout/Layout';
 import { DashboardOverview } from '../features/admin/DashboardOverview/DashboardOverview';
 import { HospitalsList } from '../features/hospitals/HospitalsList/HospitalsList';
@@ -12,7 +12,13 @@ import { ProfileList } from '../features/admin/ProfileList/ProfileList';
 import { ReportsList } from '../features/admin/ReportsList/ReportsList';
 
 export const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => {
+    return sessionStorage.getItem('active_tab_admin') || 'dashboard';
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('active_tab_admin', activeTab);
+  }, [activeTab]);
 
   const renderSection = () => {
     switch (activeTab) {

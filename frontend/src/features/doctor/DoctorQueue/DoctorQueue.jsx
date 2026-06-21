@@ -142,6 +142,12 @@ export const DoctorQueue = () => {
                 <span>Start Consultation</span>
               </Button>
             )}
+            {activeEntry.current_status === 'In Progress' && (
+              <Button size="md" variant="medical" onClick={() => setActiveConsultationEntry(activeEntry)} className="flex items-center gap-1.5">
+                <Play size={16} />
+                <span>Resume Consultation</span>
+              </Button>
+            )}
             <Button size="md" variant="primary" onClick={() => handleComplete(activeEntry.id)} className="flex items-center gap-1.5">
               <CheckCircle size={16} />
               <span>Complete Consultation</span>

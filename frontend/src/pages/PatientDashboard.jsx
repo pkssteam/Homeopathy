@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '../components/layout/Layout';
 import { ProfileList } from '../features/admin/ProfileList/ProfileList';
-import { PatientAppointments } from '../features/patient/PatientAppointments';
-import { PatientDoctors } from '../features/patient/PatientDoctors';
-import { MyVisits } from '../features/patient/MyVisits';
-import { PatientPrescriptions } from '../features/patient/PatientPrescriptions';
-import { PatientReports } from '../features/patient/PatientReports';
-import { PatientFollowUps } from '../features/patient/PatientFollowUps';
+import { AppointmentsList } from '../features/patient/AppointmentsList/AppointmentsList';
+import { DoctorsList } from '../features/patient/DoctorsList/DoctorsList';
+import { MyVisits } from '../features/patient/MyVisits/MyVisits';
+import { PrescriptionsList } from '../features/patient/PrescriptionsList/PrescriptionsList';
+import { ReportsList } from '../features/patient/ReportsList/ReportsList';
+import { FollowUpsList } from '../features/patient/FollowUpsList/FollowUpsList';
 import { Card } from '../components/ui/Card/Card';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
@@ -14,7 +14,9 @@ import { ShieldCheck, HeartPulse, Clock, Calendar, Bell } from 'lucide-react';
 import { ProfileCompleteModal } from '../components/ui/ProfileCompleteModal/ProfileCompleteModal';
 
 export const PatientDashboard = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState(() => {
+    return sessionStorage.getItem('active_tab_patient') || 'dashboard';
+  });
   const { user } = useAuth();
 
   // Dashboard state
@@ -22,6 +24,7 @@ export const PatientDashboard = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    sessionStorage.setItem('active_tab_patient', activeTab);
     if (activeTab === 'dashboard') {
       setLoading(true);
       api.getAppointments().then(res => {
@@ -111,15 +114,15 @@ export const PatientDashboard = () => {
       case 'my_visits':
         return <MyVisits />;
       case 'doctors':
-        return <PatientDoctors />;
+        return <DoctorsList />;
       case 'appointments':
-        return <PatientAppointments />;
+        return <AppointmentsList />;
       case 'prescriptions':
-        return <PatientPrescriptions />;
+        return <PrescriptionsList />;
       case 'reports':
-        return <PatientReports />;
+        return <ReportsList />;
       case 'followups':
-        return <PatientFollowUps />;
+        return <FollowUpsList />;
       case 'notifications':
         return (
           <div className="space-y-4 animate-fade-in">

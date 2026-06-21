@@ -16,9 +16,8 @@ const DoctorForm = ({ onSuccess, onSkip }) => {
     qualification: '',
     experience_years: '',
     available_days: [],
-    available_time_start: '',
-    available_time_end: '',
   });
+  const [timeSlots, setTimeSlots] = useState([{ start: '', end: '' }]);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
@@ -31,14 +30,32 @@ const DoctorForm = ({ onSuccess, onSkip }) => {
     }));
   };
 
+  const handleAddSlot = () => {
+    setTimeSlots([...timeSlots, { start: '', end: '' }]);
+  };
+
+  const handleRemoveSlot = (index) => {
+    if (timeSlots.length > 1) {
+      setTimeSlots(timeSlots.filter((_, idx) => idx !== index));
+    }
+  };
+
+  const handleSlotChange = (index, field, value) => {
+    const newSlots = [...timeSlots];
+    newSlots[index] = { ...newSlots[index], [field]: value };
+    setTimeSlots(newSlots);
+  };
+
   const validate = () => {
     const e = {};
     if (!form.specialization.trim()) e.specialization = 'Required';
     if (!form.qualification.trim()) e.qualification = 'Required';
     if (!form.experience_years || isNaN(form.experience_years)) e.experience_years = 'Enter a valid number';
     if (form.available_days.length === 0) e.available_days = 'Select at least one day';
-    if (!form.available_time_start) e.available_time_start = 'Required';
-    if (!form.available_time_end) e.available_time_end = 'Required';
+    
+    const hasEmptySlot = timeSlots.some(slot => !slot.start || !slot.end);
+    if (hasEmptySlot) e.timeSlots = 'All slot times are required';
+    
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -54,8 +71,7 @@ const DoctorForm = ({ onSuccess, onSkip }) => {
         qualification: form.qualification.trim(),
         experience_years: parseInt(form.experience_years, 10),
         available_days: form.available_days.join(','),
-        available_time_start: form.available_time_start,
-        available_time_end: form.available_time_end,
+        available_time: JSON.stringify(timeSlots),
       };
       const result = await api.completeDoctorProfile(payload);
       toast.success('Profile completed successfully!');
@@ -113,26 +129,50 @@ const DoctorForm = ({ onSuccess, onSkip }) => {
         </div>
 
         {/* Consultation Hours */}
-        <div className="pcm-field">
-          <label className="pcm-label">Consultation Hours *</label>
-          <div className="pcm-time-row">
-            <input
-              type="time"
-              className={`pcm-input${errors.available_time_start ? ' error' : ''}`}
-              value={form.available_time_start}
-              onChange={(e) => setForm({ ...form, available_time_start: e.target.value })}
-            />
-            <span className="pcm-time-sep">to</span>
-            <input
-              type="time"
-              className={`pcm-input${errors.available_time_end ? ' error' : ''}`}
-              value={form.available_time_end}
-              onChange={(e) => setForm({ ...form, available_time_end: e.target.value })}
-            />
+        <div className="pcm-field pcm-grid-full">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <label className="pcm-label" style={{ margin: 0 }}>Consultation Hours *</label>
+            <button
+              type="button"
+              onClick={handleAddSlot}
+              className="profile-add-slot-btn"
+              style={{ padding: '0.25rem 0.5rem', fontSize: '11px' }}
+            >
+              + Add Slot
+            </button>
           </div>
-          {(errors.available_time_start || errors.available_time_end) && (
-            <span className="pcm-error-text">Both start and end times are required</span>
-          )}
+          <div className="profile-slots-list">
+            {timeSlots.map((slot, index) => (
+              <div key={index} className="pcm-time-row" style={{ marginTop: '0.5rem' }}>
+                <input
+                  type="time"
+                  className="pcm-input"
+                  style={{ flex: 1 }}
+                  value={slot.start}
+                  onChange={(e) => handleSlotChange(index, 'start', e.target.value)}
+                />
+                <span className="pcm-time-sep">to</span>
+                <input
+                  type="time"
+                  className="pcm-input"
+                  style={{ flex: 1 }}
+                  value={slot.end}
+                  onChange={(e) => handleSlotChange(index, 'end', e.target.value)}
+                />
+                {timeSlots.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveSlot(index)}
+                    className="profile-remove-slot-btn"
+                    style={{ width: '24px', height: '24px', fontSize: '16px' }}
+                  >
+                    &times;
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+          {errors.timeSlots && <span className="pcm-error-text">{errors.timeSlots}</span>}
         </div>
 
         {/* Available Days */}

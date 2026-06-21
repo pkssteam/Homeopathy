@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { api } from '../../services/api';
-import { Card } from '../../components/ui/Card/Card';
-import { Badge } from '../../components/ui/Badge/Badge';
-import { Table } from '../../components/ui/Table/Table';
-import { Stethoscope, Calendar, FileText, Heart, ShieldAlert, Download, Clock } from 'lucide-react';
+import { api } from '../../../services/api';
+import { Badge } from '../../../components/ui/Badge/Badge';
+import { Stethoscope, Calendar, Eye, Heart, ShieldAlert, Clock } from 'lucide-react';
+import { ReportViewer } from '../../../components/ui/ReportViewer';
+import './MyVisits.css';
 
 export const MyVisits = () => {
   const [consultations, setConsultations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedReport, setSelectedReport] = useState(null);
 
   useEffect(() => {
     const fetchVisits = async () => {
@@ -171,16 +172,14 @@ export const MyVisits = () => {
                       <div className="flex flex-wrap gap-2 items-center">
                         <span className="text-slate-400 font-semibold">Reports:</span>
                         {consult.reports.map((report) => (
-                          <a
+                          <button
                             key={report.id}
-                            href={`http://localhost:8000${report.report_file}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            onClick={() => setSelectedReport(report)}
                             className="bg-indigo-50 hover:bg-indigo-100 border border-indigo-150 text-indigo-700 px-2.5 py-1.5 rounded-lg flex items-center gap-1 font-semibold hover:border-indigo-200 transition-colors"
                           >
-                            <Download size={12} />
+                            <Eye size={12} />
                             <span>{report.report_name}</span>
-                          </a>
+                          </button>
                         ))}
                       </div>
                     )}
@@ -194,6 +193,13 @@ export const MyVisits = () => {
           ))}
         </div>
       )}
+
+      <ReportViewer 
+        isOpen={!!selectedReport}
+        onClose={() => setSelectedReport(null)}
+        reportUrl={selectedReport?.report_file}
+        reportName={selectedReport?.report_name}
+      />
     </div>
   );
 };

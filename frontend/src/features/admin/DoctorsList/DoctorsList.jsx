@@ -763,9 +763,21 @@ export const DoctorsList = () => {
                     <div className="vdm-item vdm-item-full">
                       <span className="vdm-label">Consultation Timing Hours</span>
                       <span className="vdm-value">
-                        {viewDoc.doctor_profile.available_time_start
-                          ? `${viewDoc.doctor_profile.available_time_start} to ${viewDoc.doctor_profile.available_time_end}`
-                          : 'N/A'}
+                        {(() => {
+                          const timeVal = viewDoc.doctor_profile.available_time;
+                          if (!timeVal) return 'N/A';
+                          if (timeVal.startsWith('[')) {
+                            try {
+                              const slots = JSON.parse(timeVal);
+                              if (Array.isArray(slots)) {
+                                return slots.map(s => `${s.start} to ${s.end}`).join(', ');
+                              }
+                            } catch (e) {
+                              // Fallback
+                            }
+                          }
+                          return timeVal;
+                        })()}
                       </span>
                     </div>
                   </div>

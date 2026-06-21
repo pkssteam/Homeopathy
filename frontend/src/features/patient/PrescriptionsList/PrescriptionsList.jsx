@@ -1,20 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../../../services/api';
 import { Table } from '../../../components/ui/Table/Table';
-import { Badge } from '../../../components/ui/Badge/Badge';
-import { FileHeart } from 'lucide-react';
+import { Heart, Search } from 'lucide-react';
 import './PrescriptionsList.css';
 
 export const PrescriptionsList = () => {
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchPrescriptions = async () => {
       try {
-        const data = await api.getPrescriptions();
-        const myPr = data.filter(p => p.patientName.includes('Suresh Kumar'));
-        setPrescriptions(myPr);
+        const data = await api.getConsultations();
+        const list = [];
+        data.forEach(consult => {
+          if (consult.prescriptions) {
+            consult.prescriptions.forEach(p => {
+              list.push({
+                ...p,
+                doctorName: consult.doctor_detail?.full_name,
+                hospitalName: consult.doctor_detail?.hospital_name,
+                date: new Date(consult.created_at).toLocaleDateString()
+              });
+            });
+          }
+        });
+        setPrescriptions(list);
       } catch (err) {
         console.error(err);
       } finally {
@@ -24,37 +36,63 @@ export const PrescriptionsList = () => {
     fetchPrescriptions();
   }, []);
 
-  if (loading) return <div className="p-4 text-slate-500 text-sm">Loading prescriptions...</div>;
+  const filtered = prescriptions.filter(p => 
+    p.medicine_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.doctorName && p.doctorName.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  if (loading) {
+    return <div className="p-6 text-slate-500 text-sm">Loading prescriptions...</div>;
+  }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-slate-900">Your Remedy Prescriptions</h2>
-        <p className="text-xs text-slate-500">View prescription details, dosage directions, and pharmacy status.</p>
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-slate-900">My Remedies & Prescriptions</h2>
+          <p className="text-xs text-slate-500">Track and view dilution drops and prescription details requested by your doctor.</p>
+        </div>
+        <div className="relative max-w-xs w-full">
+          <Search className="absolute left-3 top-2.5 text-slate-400" size={14} />
+          <input
+            type="text"
+            className="w-full border border-slate-200 rounded-lg pl-9 pr-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-emerald-500"
+            placeholder="Search by remedy or doctor..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
       </div>
 
-      <Table headers={['PR ID', 'Prescribing Doctor', 'Prescription Date', 'Homeopathy Remedy', 'Dosage Guideline', 'Course Duration', 'Pharmacy Status']}>
-        {prescriptions.map((pr) => (
-          <tr key={pr.id} className="hover:bg-slate-50/50">
-            <td className="px-4 py-3 font-semibold text-slate-500">{pr.id}</td>
-            <td className="px-4 py-3 font-semibold text-slate-800">{pr.doctorName}</td>
-            <td className="px-4 py-3 text-slate-600">{pr.date}</td>
-            <td className="px-4 py-3">
-              <div className="flex items-center gap-1.5 text-slate-800 font-semibold">
-                <FileHeart size={14} className="text-slate-400" />
-                <span>{pr.medicine}</span>
-              </div>
-            </td>
-            <td className="px-4 py-3 text-slate-650">{pr.dosage}</td>
-            <td className="px-4 py-3 text-slate-600">{pr.duration}</td>
-            <td className="px-4 py-3">
-              <Badge variant={pr.status === 'Dispensed' ? 'success' : 'warning'}>
-                {pr.status}
-              </Badge>
-            </td>
-          </tr>
-        ))}
-      </Table>
+      {filtered.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-xl p-8 text-center text-slate-500 text-sm">
+          <Heart className="mx-auto text-slate-300 mb-3" size={36} />
+          <p className="font-semibold text-slate-700">No prescriptions found.</p>
+          <p className="text-xs mt-1 text-slate-400">All prescribed remedies from your consultations will be recorded here.</p>
+        </div>
+      ) : (
+        <Table headers={['Date', 'Remedy / Dilution', 'Dosage', 'Duration', 'Prescribing Doctor', 'Status']}>
+          {filtered.map((p) => (
+            <tr key={p.id} className="hover:bg-slate-50/50">
+              <td className="px-4 py-3 text-slate-500 text-xs font-semibold">{p.date}</td>
+              <td className="px-4 py-3 font-bold text-slate-800 text-sm">{p.medicine_name}</td>
+              <td className="px-4 py-3 text-slate-650 font-semibold">{p.dosage}</td>
+              <td className="px-4 py-3 text-slate-600">{p.duration}</td>
+              <td className="px-4 py-3 text-slate-700">
+                <div className="font-semibold">Dr. {p.doctorName}</div>
+                <div className="text-[10px] text-slate-400">{p.hospitalName}</div>
+              </td>
+              <td className="px-4 py-3">
+                <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                  p.status === 'Dispensed' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'
+                }`}>
+                  {p.status}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </Table>
+      )}
     </div>
   );
 };

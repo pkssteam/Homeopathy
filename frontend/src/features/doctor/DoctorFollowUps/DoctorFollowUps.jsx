@@ -4,26 +4,34 @@ import { Table } from '../../../components/ui/Table/Table';
 import { Badge } from '../../../components/ui/Badge/Badge';
 import { Button } from '../../../components/ui/Button/Button';
 import { 
-  Calendar, Search, ArrowLeft, Phone, Mail, FileText, Heart, Clipboard, Clock, User 
+  Calendar, Search, ArrowLeft, Phone, Mail, FileText, Heart, Clipboard, Clock, User, Eye, Stethoscope
 } from 'lucide-react';
 import './DoctorFollowUps.css';
+import { ReportViewer } from '../../../components/ui/ReportViewer';
 
 export const DoctorFollowUps = () => {
   const [followups, setFollowups] = useState([]);
   const [selectedFollowup, setSelectedFollowup] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedReport, setSelectedReport] = useState(null);
 
   const fetchFollowups = async () => {
     setLoading(true);
     try {
-      const data = await api.getConsultations();
+      const [consultationsData, appointmentsData] = await Promise.all([
+        api.getConsultations(),
+        api.getAppointments()
+      ]);
+      
       const list = [];
-      data.forEach(consult => {
+      
+      // 1. Process consultation follow-up milestones
+      consultationsData.forEach(consult => {
         if (consult.follow_up) {
           list.push({
             ...consult.follow_up,
-            patientName: consult.patient_detail?.full_name,
+            patientName: consult.patient_detail?.full_name || 'N/A',
             patientPhone: consult.patient_detail?.phone,
             patientEmail: consult.patient_detail?.email,
             consultationDate: new Date(consult.created_at).toLocaleDateString(),
@@ -33,11 +41,52 @@ export const DoctorFollowUps = () => {
             diagnosisNotes: consult.diagnosis_notes,
             consultationNotes: consult.consultation_notes,
             diseaseStage: consult.disease_stage,
-            prescriptions: consult.prescriptions || []
+            prescriptions: consult.prescriptions || [],
+            reports: consult.reports || [],
+            isAppointment: false,
+            hospitalName: consult.appointment_detail?.hospital_name,
+            branchName: consult.appointment_detail?.branch_name
           });
         }
       });
-      // Sort closest future date first
+      
+      // 2. Process upcoming approved or pending appointments
+      const currentDoctor = JSON.parse(localStorage.getItem('hms_session') || '{}');
+      appointmentsData.forEach(appt => {
+        const isUpcoming = appt.status === 'Approved' || appt.status === 'Pending';
+        const isDocAppt = appt.doctor?.id === currentDoctor.id;
+        
+        if (isUpcoming && isDocAppt) {
+          // Exclude already consulted appointments
+          const isCompleted = consultationsData.some(c => c.appointment === appt.id);
+          if (!isCompleted) {
+            list.push({
+              id: appt.id,
+              next_visit_date: appt.appointment_date,
+              follow_up_notes: appt.reason || 'Scheduled Visit',
+              patientName: appt.patient?.full_name || 'N/A',
+              patientPhone: appt.patient?.phone,
+              patientEmail: appt.patient?.email,
+              consultationDate: '',
+              consultationTime: '',
+              chiefComplaint: appt.reason || 'Scheduled Appointment',
+              symptoms: '',
+              diagnosisNotes: '',
+              consultationNotes: '',
+              diseaseStage: '',
+              prescriptions: [],
+              reports: [],
+              isAppointment: true,
+              status: appt.status,
+              appointmentTime: appt.appointment_time,
+              hospitalName: appt.hospital?.hospital_name,
+              branchName: appt.hospital?.branch_name
+            });
+          }
+        }
+      });
+
+      // Sort closest date first
       list.sort((a, b) => new Date(a.next_visit_date) - new Date(b.next_visit_date));
       setFollowups(list);
     } catch (err) {
@@ -67,25 +116,29 @@ export const DoctorFollowUps = () => {
               <ArrowLeft size={16} />
             </Button>
             <div>
-              <h2 className="text-xl font-bold text-slate-900 font-display">Follow-Up Review: {selectedFollowup.patientName}</h2>
+              <h2 className="text-xl font-bold text-slate-900 font-display">
+                {selectedFollowup.isAppointment ? 'Upcoming Appointment:' : 'Follow-Up Review:'} {selectedFollowup.patientName}
+              </h2>
               <p className="text-xs text-slate-500 font-medium">Verify upcoming clinical milestones and patient review notes.</p>
             </div>
           </div>
           <span className={`px-3 py-1 rounded-full font-bold text-[11px] ${
-            isFuture ? 'followup-badge-upcoming' : 'followup-badge-past'
+            selectedFollowup.isAppointment 
+              ? (selectedFollowup.status === 'Approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100')
+              : (isFuture ? 'followup-badge-upcoming' : 'followup-badge-past')
           }`}>
-            {isFuture ? 'Upcoming Review' : 'Past Review / Completed'}
+            {selectedFollowup.isAppointment ? `Upcoming ${selectedFollowup.status} Appointment` : (isFuture ? 'Upcoming Review' : 'Past Review / Completed')}
           </span>
         </div>
 
         {/* Details Layout Grid */}
         <div className="followups-detail-container">
           
-          {/* Left Column: Patient Details & Initial Consultation Summary */}
+          {/* Left Column: Patient Details & Context */}
           <div className="followup-detail-card space-y-6">
             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b border-slate-100 pb-3">
               <Clipboard size={18} className="text-slate-500" />
-              <span>Initial Consultation Summary</span>
+              <span>{selectedFollowup.isAppointment ? 'Appointment Details' : 'Initial Consultation Summary'}</span>
             </h3>
 
             <div className="space-y-4">
@@ -110,25 +163,32 @@ export const DoctorFollowUps = () => {
               {/* Consultation Context */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <span className="text-slate-400 block font-semibold text-[10px] uppercase">Visit Date / Time</span>
-                  <span className="text-slate-800 font-bold block mt-0.5">{selectedFollowup.consultationDate} at {selectedFollowup.consultationTime}</span>
+                  <span className="text-slate-400 block font-semibold text-[10px] uppercase">
+                    {selectedFollowup.isAppointment ? 'Scheduled Date / Time' : 'Visit Date / Time'}
+                  </span>
+                  <span className="text-slate-800 font-bold block mt-0.5">
+                    {new Date(selectedFollowup.next_visit_date).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })} {selectedFollowup.appointmentTime ? `at ${selectedFollowup.appointmentTime}` : ''}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block font-semibold text-[10px] uppercase">Recorded Disease Stage</span>
-                  <span className="text-slate-800 font-bold block mt-0.5">{selectedFollowup.diseaseStage || 'N/A'}</span>
+                  <span className="text-slate-400 block font-semibold text-[10px] uppercase">Hospital / Branch</span>
+                  <span className="text-slate-800 font-bold block mt-0.5">
+                    {selectedFollowup.hospitalName || 'Main Clinic'} ({selectedFollowup.branchName || 'Main Branch'})
+                  </span>
                 </div>
               </div>
 
-              {/* Chief Complaint */}
+              {/* Reason / Complaint */}
               <div>
-                <span className="text-slate-400 block font-semibold text-[10px] uppercase mb-1">Chief Complaint</span>
+                <span className="text-slate-400 block font-semibold text-[10px] uppercase mb-1">
+                  {selectedFollowup.isAppointment ? 'Reason for Appointment' : 'Chief Complaint'}
+                </span>
                 <p className="text-slate-700 bg-slate-50 border border-slate-100 p-3 rounded-lg font-medium leading-relaxed">
-                  {selectedFollowup.chiefComplaint}
+                  {selectedFollowup.isAppointment ? selectedFollowup.follow_up_notes : selectedFollowup.chiefComplaint}
                 </p>
               </div>
 
-              {/* Symptoms */}
-              {selectedFollowup.symptoms && (
+              {!selectedFollowup.isAppointment && selectedFollowup.symptoms && (
                 <div>
                   <span className="text-slate-400 block font-semibold text-[10px] uppercase mb-1">Symptomatology Details</span>
                   <p className="text-slate-700 bg-slate-50 border border-slate-100 p-3 rounded-lg font-medium leading-relaxed">
@@ -139,18 +199,18 @@ export const DoctorFollowUps = () => {
             </div>
           </div>
 
-          {/* Right Column: Follow-up Milestone & Prescribed Remedy */}
+          {/* Right Column: Follow-up Planner & Remedy */}
           <div className="followup-detail-card space-y-6">
             <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2 border-b border-slate-100 pb-3">
               <Clock size={18} className="text-emerald-600" />
-              <span>Follow-Up Planner & Remedy</span>
+              <span>{selectedFollowup.isAppointment ? 'Schedule Information' : 'Follow-Up Planner & Remedy'}</span>
             </h3>
 
             <div className="space-y-4">
               {/* Scheduled Date Card */}
               <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-4 flex justify-between items-center">
                 <div>
-                  <span className="text-emerald-700 block font-bold text-[10px] uppercase">Next Scheduled Date</span>
+                  <span className="text-emerald-700 block font-bold text-[10px] uppercase">Target Date</span>
                   <span className="text-emerald-950 font-extrabold text-sm block mt-0.5">
                     {new Date(selectedFollowup.next_visit_date).toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   </span>
@@ -158,48 +218,84 @@ export const DoctorFollowUps = () => {
                 <Calendar className="text-emerald-600" size={24} />
               </div>
 
-              {/* Follow-up Notes */}
-              <div>
-                <span className="text-slate-400 block font-semibold text-[10px] uppercase mb-1">Instructions / Notes</span>
-                <p className="text-slate-700 bg-slate-50 border border-slate-100 p-3 rounded-lg font-semibold leading-relaxed">
-                  {selectedFollowup.follow_up_notes || 'Routine follow-up consultation review.'}
-                </p>
-              </div>
-
-              {/* Diagnosis notes */}
-              {selectedFollowup.diagnosisNotes && (
-                <div>
-                  <span className="text-slate-400 block font-semibold text-[10px] uppercase mb-0.5">Clinical Diagnosis</span>
-                  <span className="text-slate-800 font-bold block">{selectedFollowup.diagnosisNotes}</span>
+              {selectedFollowup.isAppointment ? (
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 text-slate-650 leading-relaxed font-medium">
+                  <p className="font-bold text-slate-800 mb-1 text-xs">Upcoming Clinic Visit</p>
+                  <p>This is a scheduled clinic visit. Please review the patient's medical history when they attend the clinic. There are no past prescriptions or lab reports associated with this future appointment yet.</p>
                 </div>
-              )}
-
-              {/* Prescribed Remedies during that visit */}
-              {selectedFollowup.prescriptions && selectedFollowup.prescriptions.length > 0 && (
-                <div className="remedy-list-container space-y-2">
-                  <span className="text-emerald-700 font-bold block uppercase tracking-wider text-[10px] flex items-center gap-1">
-                    <Heart size={12} className="text-emerald-600" />
-                    <span>Prescribed Remedy Program</span>
-                  </span>
-                  <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
-                    {selectedFollowup.prescriptions.map(p => (
-                      <div key={p.id} className="flex justify-between items-center bg-slate-50 border border-slate-100 p-2.5 rounded-lg">
-                        <div>
-                          <strong className="text-slate-800 block text-xs">{p.medicine_name}</strong>
-                          <span className="text-slate-500 block text-[10px] mt-0.5">Dosage: {p.dosage} | Duration: {p.duration}</span>
-                        </div>
-                        <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100/50 px-2 py-0.5 rounded-full">
-                          {p.instructions || 'Before Meal'}
-                        </span>
-                      </div>
-                    ))}
+              ) : (
+                <>
+                  {/* Follow-up Notes */}
+                  <div>
+                    <span className="text-slate-400 block font-semibold text-[10px] uppercase mb-1">Instructions / Notes</span>
+                    <p className="text-slate-700 bg-slate-50 border border-slate-100 p-3 rounded-lg font-semibold leading-relaxed">
+                      {selectedFollowup.follow_up_notes || 'Routine follow-up consultation review.'}
+                    </p>
                   </div>
-                </div>
+
+                  {/* Diagnosis notes */}
+                  {selectedFollowup.diagnosisNotes && (
+                    <div>
+                      <span className="text-slate-400 block font-semibold text-[10px] uppercase mb-0.5">Clinical Diagnosis</span>
+                      <span className="text-slate-800 font-bold block">{selectedFollowup.diagnosisNotes}</span>
+                    </div>
+                  )}
+
+                  {/* Prescribed Remedies */}
+                  {selectedFollowup.prescriptions && selectedFollowup.prescriptions.length > 0 && (
+                    <div className="remedy-list-container space-y-2">
+                      <span className="text-emerald-700 font-bold block uppercase tracking-wider text-[10px] flex items-center gap-1">
+                        <Heart size={12} className="text-emerald-600" />
+                        <span>Prescribed Remedy Program</span>
+                      </span>
+                      <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                        {selectedFollowup.prescriptions.map(p => (
+                          <div key={p.id} className="flex justify-between items-center bg-slate-50 border border-slate-100 p-2.5 rounded-lg">
+                            <div>
+                              <strong className="text-slate-800 block text-xs">{p.medicine_name}</strong>
+                              <span className="text-slate-500 block text-[10px] mt-0.5">Dosage: {p.dosage} | Duration: {p.duration}</span>
+                            </div>
+                            <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100/50 px-2 py-0.5 rounded-full">
+                              {p.instructions || 'Before Meal'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Consultation Reports */}
+                  {selectedFollowup.reports && selectedFollowup.reports.length > 0 && (
+                    <div className="border-t border-slate-100 pt-4 text-xs space-y-2">
+                      <span className="text-indigo-700 font-bold block uppercase tracking-wider text-[10px]">Consultation Reports</span>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedFollowup.reports.map(r => (
+                          <button 
+                            key={r.id}
+                            type="button"
+                            onClick={() => setSelectedReport(r)}
+                            className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition flex items-center gap-1.5"
+                          >
+                            <Eye size={12} />
+                            <span>{r.report_name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
 
         </div>
+
+        <ReportViewer 
+          isOpen={!!selectedReport}
+          onClose={() => setSelectedReport(null)}
+          reportUrl={selectedReport?.report_file}
+          reportName={selectedReport?.report_name}
+        />
       </div>
     );
   }
@@ -241,20 +337,21 @@ export const DoctorFollowUps = () => {
           <p className="text-xs mt-1 text-slate-400">Configure target follow-up dates when completing consultations.</p>
         </div>
       ) : (
-        <Table headers={['Follow-Up Date', 'Patient Name', 'Created During Visit', 'Instructions / Notes', 'Timeline status', 'Action']}>
+        <Table headers={['Follow-Up Date', 'Patient Name', 'Instructions / Notes', 'Timeline status', 'Action']}>
           {filtered.map((f) => {
             const isFuture = f.next_visit_date >= todayStr;
             return (
               <tr key={f.id} className="hover:bg-slate-50/50">
                 <td className="px-4 py-3 font-bold text-slate-800 text-sm">
                   {new Date(f.next_visit_date).toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })}
+                  {f.appointmentTime && <span className="block text-[10px] text-slate-400 font-semibold">{f.appointmentTime}</span>}
                 </td>
                 <td className="px-4 py-3 font-semibold text-slate-850 text-sm">{f.patientName}</td>
-                <td className="px-4 py-3 text-slate-500 text-xs">{f.consultationDate}</td>
-                <td className="px-4 py-3 text-slate-650 text-xs truncate max-w-sm">{f.follow_up_notes || '-'}</td>
+                <td className="px-4 py-3 text-slate-650 text-xs truncate max-w-md">{f.follow_up_notes || '-'}</td>
+
                 <td className="px-4 py-3">
-                  <Badge variant={isFuture ? 'primary' : 'secondary'}>
-                    {isFuture ? 'Upcoming' : 'Past Due / Met'}
+                  <Badge variant={f.isAppointment ? (f.status === 'Approved' ? 'success' : 'warning') : (isFuture ? 'primary' : 'secondary')}>
+                    {f.isAppointment ? `${f.status} Appt` : (isFuture ? 'Upcoming' : 'Past Due / Met')}
                   </Badge>
                 </td>
                 <td className="px-4 py-3">
@@ -267,6 +364,13 @@ export const DoctorFollowUps = () => {
           })}
         </Table>
       )}
+
+      <ReportViewer 
+        isOpen={!!selectedReport}
+        onClose={() => setSelectedReport(null)}
+        reportUrl={selectedReport?.report_file}
+        reportName={selectedReport?.report_name}
+      />
     </div>
   );
 };

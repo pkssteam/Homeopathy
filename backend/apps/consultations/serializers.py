@@ -17,18 +17,25 @@ class ConsultationReportSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at']
 
 class ConsultationFollowUpSerializer(serializers.ModelSerializer):
+    future_appointment = serializers.PrimaryKeyRelatedField(
+        queryset=Appointment.objects.all(),
+        required=False,
+        allow_null=True
+    )
     class Meta:
         model = ConsultationFollowUp
         fields = ['id', 'next_visit_date', 'follow_up_notes', 'future_appointment', 'created_at']
-        read_only_fields = ['id', 'future_appointment', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
 class AppointmentMinimalSerializer(serializers.ModelSerializer):
     booked_by_name = serializers.CharField(source='created_by.full_name', read_only=True, default='')
     booked_by_role = serializers.CharField(source='created_by.role', read_only=True, default='')
+    hospital_name = serializers.CharField(source='hospital.hospital_name', read_only=True, default='')
+    branch_name = serializers.CharField(source='hospital.branch_name', read_only=True, default='')
 
     class Meta:
         model = Appointment
-        fields = ['id', 'appointment_date', 'appointment_time', 'status', 'booked_by_name', 'booked_by_role', 'created_at']
+        fields = ['id', 'appointment_date', 'appointment_time', 'status', 'booked_by_name', 'booked_by_role', 'hospital_name', 'branch_name', 'created_at']
 
 class ConsultationSerializer(serializers.ModelSerializer):
     appointment = serializers.PrimaryKeyRelatedField(
@@ -50,6 +57,15 @@ class ConsultationSerializer(serializers.ModelSerializer):
             'prescriptions', 'reports', 'follow_up', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'patient', 'doctor', 'created_at', 'updated_at']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'appointment' in self.fields:
+            from rest_framework.validators import UniqueValidator
+            self.fields['appointment'].validators = [
+                v for v in self.fields['appointment'].validators
+                if not isinstance(v, UniqueValidator)
+            ]
 
     def create(self, validated_data):
         prescriptions_data = validated_data.pop('prescriptions', [])
