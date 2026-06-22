@@ -12,6 +12,45 @@ import {
 } from 'lucide-react';
 import './AppointmentsList.css';
 
+// Helper to generate 30-minute slots dynamically
+const generateSlots = (availableTimeStr) => {
+  if (!availableTimeStr) return [];
+  try {
+    let slotsConfig = [];
+    if (availableTimeStr.startsWith('[')) {
+      slotsConfig = JSON.parse(availableTimeStr);
+    } else {
+      const parts = availableTimeStr.split(' to ');
+      if (parts.length === 2) {
+        slotsConfig = [{ start: parts[0], end: parts[1] }];
+      } else {
+        return [];
+      }
+    }
+
+    const allSlots = [];
+    slotsConfig.forEach(shift => {
+      if (!shift.start || !shift.end) return;
+      const [startH, startM] = shift.start.split(':').map(Number);
+      const [endH, endM] = shift.end.split(':').map(Number);
+
+      let currentMinutes = startH * 60 + startM;
+      const endMinutes = endH * 60 + endM;
+
+      while (currentMinutes + 30 <= endMinutes) {
+        const hh = String(Math.floor(currentMinutes / 60)).padStart(2, '0');
+        const mm = String(currentMinutes % 60).padStart(2, '0');
+        allSlots.push(`${hh}:${mm}`);
+        currentMinutes += 30;
+      }
+    });
+    return allSlots;
+  } catch (e) {
+    console.error('Error generating slots:', e);
+    return [];
+  }
+};
+
 export const AppointmentsList = () => {
   const [appointments, setAppointments] = useState([]);
   const [hospitals, setHospitals] = useState([]);
@@ -43,6 +82,7 @@ export const AppointmentsList = () => {
     status: 'Pending'
   });
   
+  const [bookedSlots, setBookedSlots] = useState([]);
   const [formErrors, setFormErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -103,6 +143,21 @@ export const AppointmentsList = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [statusFilter, dateFilter]);
+
+  useEffect(() => {
+    if (formData.doctor_id && formData.appointment_date) {
+      api.getBookedSlots(formData.doctor_id, formData.appointment_date)
+        .then(res => {
+          setBookedSlots(res.booked_slots || []);
+        })
+        .catch(err => {
+          console.error(err);
+          setBookedSlots([]);
+        });
+    } else {
+      setBookedSlots([]);
+    }
+  }, [formData.doctor_id, formData.appointment_date]);
 
   const openAddModal = () => {
     const defaultHospitalId = hospitals[0]?.id || '';
@@ -648,6 +703,57 @@ export const AppointmentsList = () => {
               required
             />
           </FormGroup>
+
+          {formData.doctor_id && formData.appointment_date && (
+            <div className="admin-slots-section my-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+              <label className="block text-xs font-semibold text-slate-700 mb-2">Available Doctor Shifts & Slots (30 Min)</label>
+              {(() => {
+                const docObj = doctors.find(d => d.id === formData.doctor_id);
+                if (!docObj) return null;
+                const availTime = docObj.doctor_profile?.available_time;
+                const slots = generateSlots(availTime);
+                if (slots.length === 0) {
+                  return (
+                    <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-250">
+                      No duty hours configured for this doctor.
+                    </p>
+                  );
+                }
+                return (
+                  <div className="grid grid-cols-4 gap-2 mt-2 max-h-40 overflow-y-auto pr-1">
+                    {slots.map(slotTime => {
+                      const isBooked = bookedSlots.includes(slotTime);
+                      const isSelected = formData.appointment_time?.startsWith(slotTime);
+                      
+                      let btnClass = "p-2 rounded text-xs font-bold border transition-all text-center ";
+                      if (isBooked) {
+                        btnClass += "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed";
+                      } else if (isSelected) {
+                        btnClass += "bg-blue-600 border-blue-600 text-white shadow-sm";
+                      } else {
+                        btnClass += "bg-white border-emerald-500 text-emerald-800 hover:bg-emerald-50 cursor-pointer";
+                      }
+
+                      return (
+                        <button
+                          key={slotTime}
+                          type="button"
+                          disabled={isBooked}
+                          onClick={() => setFormData({ ...formData, appointment_time: slotTime })}
+                          className={btnClass}
+                        >
+                          <div>{slotTime}</div>
+                          <div className={`text-[8px] mt-0.5 ${isBooked ? 'text-slate-400' : isSelected ? 'text-blue-100' : 'text-emerald-600'}`}>
+                            {isBooked ? 'Booked' : isSelected ? 'Selected' : 'Available'}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
 
           <Input
             label="Reason for Visit / Symptoms"

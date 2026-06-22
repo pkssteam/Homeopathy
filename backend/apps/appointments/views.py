@@ -93,6 +93,21 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             
         return Response(AppointmentSerializer(appointment).data, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['get'])
+    def booked_slots(self, request):
+        doctor_id = request.query_params.get('doctor_id')
+        date_str = request.query_params.get('date')
+        if not doctor_id or not date_str:
+            return Response({'error': 'doctor_id and date are required parameters.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        booked = Appointment.objects.filter(
+            doctor_id=doctor_id,
+            appointment_date=date_str
+        ).exclude(status='Cancelled').values_list('appointment_time', flat=True)
+        
+        booked_times = [t.strftime('%H:%M') for t in booked]
+        return Response({'booked_slots': booked_times}, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['delete'])
     def delete_all(self, request):
         self.get_queryset().delete()

@@ -228,6 +228,10 @@ export const api = {
     });
   },
 
+  getBookedSlots: async (doctorId, date) => {
+    return await request(`/appointments/booked_slots/?doctor_id=${doctorId}&date=${date}`);
+  },
+
   // Queue Management
   getQueue: async (params = {}) => {
     let query = '';
