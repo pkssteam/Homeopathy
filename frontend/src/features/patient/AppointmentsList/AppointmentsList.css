@@ -1,1 +1,601 @@
-/* CSS for AppointmentsList */
+/* Premium Appointments Slot Booking Stylesheet */
+
+/* Wizard Progress Header */
+.wizard-steps-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0.55;
+  transition: all 0.3s ease;
+}
+
+.step-item.active {
+  opacity: 1;
+}
+
+.step-item.completed .step-number {
+  background-color: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+}
+
+.step-item.active .step-number {
+  background-color: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.step-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  background-color: #ffffff;
+  transition: all 0.25s ease;
+}
+
+.step-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.step-connector {
+  flex: 1;
+  height: 2px;
+  background-color: #e2e8f0;
+  margin: 0 16px;
+}
+
+/* Doctor Selection Cards Grid */
+.doctors-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+/* Premium Doctor Card Styling */
+.booking-doctor-card {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.booking-doctor-card:hover {
+  border-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.06);
+}
+
+.booking-doctor-card.selected {
+  border-color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.01);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.08);
+}
+
+.doctor-card-header-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.doctor-card-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  color: #1d4ed8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+  border: 1px solid #bfdbfe;
+  flex-shrink: 0;
+}
+
+.doctor-card-basic-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.doctor-card-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.doctor-card-specialty {
+  font-size: 11px;
+  color: #64748b;
+  margin: 1px 0 6px 0;
+}
+
+.doctor-card-badges {
+  display: flex;
+  gap: 6px;
+}
+
+.doc-badge {
+  font-size: 10px;
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 550;
+}
+
+.doctor-card-body {
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 10px 0;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.schedule-info, .time-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.schedule-label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.schedule-days-list {
+  display: flex;
+  gap: 3px;
+}
+
+.day-pill {
+  font-size: 9px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.day-pill.active {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.day-pill.inactive {
+  background-color: #f8fafc;
+  color: #cbd5e1;
+  border: 1px solid #f1f5f9;
+}
+
+.time-range-text {
+  font-size: 11px;
+  color: #334155;
+  font-weight: 550;
+  max-width: 170px;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doctor-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fee-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.fee-label {
+  font-size: 9px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fee-val {
+  font-size: 15px;
+  font-weight: 750;
+  color: #059669;
+}
+
+.choose-indicator {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2563eb;
+  background-color: #eff6ff;
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px dashed #bfdbfe;
+  transition: all 0.2s ease;
+}
+
+.choose-indicator.selected {
+  background-color: #10b981;
+  color: #ffffff;
+  border: 1px solid #10b981;
+}
+
+/* Step 2 Column Split Layout */
+.calendar-slots-columns {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 24px;
+}
+
+.calendar-col, .slots-col {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.col-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 2px 0;
+}
+
+.col-subtitle {
+  font-size: 11px;
+  color: #64748b;
+  margin: 0 0 16px 0;
+}
+
+/* Premium Month Calendar */
+.appt-calendar {
+  width: 100%;
+}
+
+.appt-calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.calendar-nav-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.calendar-nav-btn:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.calendar-month-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.appt-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.weekday-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.appt-calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-day.empty {
+  height: 36px;
+}
+
+.calendar-day-btn {
+  height: 36px;
+  width: 100%;
+  border-radius: 8px;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.calendar-day-btn.available {
+  background-color: #ffffff;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+
+.calendar-day-btn.available:hover {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+  color: #2563eb;
+}
+
+.calendar-day-btn.selected {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+}
+
+.calendar-day-btn.disabled {
+  background-color: #f8fafc;
+  color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+/* Time slots container */
+.time-slots-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.slots-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 16px 0;
+}
+
+.time-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.slot-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Clickable green border state for available slots */
+.slot-btn.available {
+  background-color: #ffffff;
+  border-color: #10b981; /* Green border */
+  color: #065f46;
+}
+
+.slot-btn.available:hover {
+  background-color: #ecfdf5;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.12);
+  transform: translateY(-1px);
+}
+
+/* Primary color highlight state for selected slots */
+.slot-btn.selected {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
+
+/* Disabled Booked slot logic and state */
+.slot-btn.booked {
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.slot-time-text {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.slot-status-badge {
+  font-size: 9px;
+  margin-top: 3px;
+  font-weight: 600;
+}
+
+.slot-status-badge.available-badge {
+  color: #059669;
+}
+
+.choose-date-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  min-height: 200px;
+  padding: 20px;
+}
+
+.no-slots-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+
+/* STEP 3 Summary view */
+.appointment-summary-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.summary-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 16px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.summary-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
+}
+
+.summary-label {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.summary-value {
+  color: #1e293b;
+  font-weight: 600;
+  text-align: right;
+}
+
+.total-fee-row {
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 12px;
+  margin-top: 4px;
+}
+
+.summary-reason-field {
+  margin-top: 20px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 16px;
+}
+
+.reason-label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.reason-textarea {
+  width: 100%;
+  padding: 10px;
+  font-size: 12.5px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  resize: none;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.reason-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+/* Modal Wrapper Styling Override for Booking Wizard */
+.booking-wizard-modal {
+  max-width: 720px !important;
+}
+
+.wizard-actions-footer {
+  background-color: #ffffff;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+  .calendar-slots-columns {
+    grid-template-columns: 1fr; /* 1 column layout on mobile/tablet */
+    gap: 16px;
+  }
+  
+  .wizard-steps-header {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .step-label {
+    display: none; /* Hide labels on mobile to prevent overlapping */
+  }
+
+  .step-connector {
+    margin: 0 4px;
+  }
+
+  .time-slots-grid {
+    grid-template-columns: repeat(4, 1fr); /* More columns for narrow view */
+  }
+}
+
+@media (max-width: 480px) {
+  .time-slots-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .doctors-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
