@@ -11,6 +11,6 @@ class InventoryItemSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'hospital', 'hospital_name', 'branch_name',
             'name', 'category', 'stock', 'unit', 'price', 'status',
-            'created_at', 'updated_at'
+            'image', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'status', 'created_at', 'updated_at']

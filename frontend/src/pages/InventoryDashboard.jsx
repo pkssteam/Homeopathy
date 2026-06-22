@@ -7,6 +7,7 @@ import { Badge } from '../components/ui/Badge/Badge';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../services/api';
 import { ShieldCheck, Package, Users, FileText, ArrowLeftRight, Bell, AlertTriangle } from 'lucide-react';
+import { InventoryList } from '../features/inventory/InventoryList/InventoryList';
 
 export const InventoryDashboard = () => {
   const [activeTab, setActiveTab] = useState(() => {
@@ -14,21 +15,27 @@ export const InventoryDashboard = () => {
   });
   const { user } = useAuth();
   
-  // Mock inventories
-  const [medicines, setMedicines] = useState([
-    { id: 1, name: 'Arnica Montana', dilution: '30C', category: 'Dilution', stock: 45, status: 'Available' },
-    { id: 2, name: 'Nux Vomica', dilution: '200C', category: 'Dilution', stock: 12, status: 'Low Stock' },
-    { id: 3, name: 'Lycopodium Clavatum', dilution: '1M', category: 'Dilution', stock: 85, status: 'Available' },
-    { id: 4, name: 'Belladonna', dilution: '30C', category: 'Dilution', stock: 3, status: 'Out of Stock' },
-    { id: 5, name: 'Thuja Occidentalis', dilution: 'Q (Tincture)', category: 'Mother Tincture', stock: 24, status: 'Available' },
-    { id: 6, name: 'Pulsatilla', dilution: '30C', category: 'Dilution', stock: 50, status: 'Available' },
-  ]);
-
+  const [items, setItems] = useState([]);
   const [doctorsList, setDoctorsList] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const data = await api.getInventory();
+      setItems(data);
+    } catch (err) {
+      console.error('Failed to load dashboard inventory stats:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   useEffect(() => {
     sessionStorage.setItem('active_tab_inventory', activeTab);
-    if (activeTab === 'assigned_doctors') {
+    if (activeTab === 'dashboard') {
+      fetchStats();
+    } else if (activeTab === 'assigned_doctors') {
       api.getUsers('DOCTOR').then(res => setDoctorsList(res)).catch(console.error);
     }
   }, [activeTab]);
@@ -36,6 +43,11 @@ export const InventoryDashboard = () => {
   const renderSection = () => {
     switch (activeTab) {
       case 'dashboard':
+        const totalItems = items.length;
+        const lowStockItems = items.filter(i => i.stock > 0 && i.stock <= 10);
+        const outOfStockItems = items.filter(i => i.stock === 0);
+        const totalVials = items.reduce((sum, item) => sum + (item.stock || 0), 0);
+
         return (
           <div className="space-y-6 animate-fade-in">
             <div className="dashboard-hero-banner">
@@ -45,11 +57,11 @@ export const InventoryDashboard = () => {
               <div className="hero-banner-stats">
                 <div className="hero-stat-pill">
                   <span className="hero-stat-icon">📦</span>
-                  <span>142 Total Vials</span>
+                  <span>{totalVials} Total Vials</span>
                 </div>
                 <div className="hero-stat-pill">
                   <span className="hero-stat-icon">⚠️</span>
-                  <span>5 Low Stock Alerts</span>
+                  <span>{lowStockItems.length + outOfStockItems.length} Warnings</span>
                 </div>
               </div>
             </div>
@@ -60,7 +72,7 @@ export const InventoryDashboard = () => {
                   <Package size={20} />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-slate-800">142</div>
+                  <div className="text-lg font-bold text-slate-800">{totalItems}</div>
                   <div className="text-xs text-slate-500">Total Medicines</div>
                 </div>
               </div>
@@ -70,7 +82,7 @@ export const InventoryDashboard = () => {
                   <AlertTriangle size={20} />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-slate-800">5</div>
+                  <div className="text-lg font-bold text-slate-800">{lowStockItems.length}</div>
                   <div className="text-xs text-slate-500">Low Stock Items</div>
                 </div>
               </div>
@@ -80,7 +92,7 @@ export const InventoryDashboard = () => {
                   <AlertTriangle size={20} />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-slate-800">1</div>
+                  <div className="text-lg font-bold text-slate-800">{outOfStockItems.length}</div>
                   <div className="text-xs text-slate-500">Out of Stock</div>
                 </div>
               </div>
@@ -90,7 +102,7 @@ export const InventoryDashboard = () => {
                   <ArrowLeftRight size={20} />
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-slate-800">18</div>
+                  <div className="text-lg font-bold text-slate-800">0</div>
                   <div className="text-xs text-slate-500">Today's Transactions</div>
                 </div>
               </div>
@@ -111,23 +123,34 @@ export const InventoryDashboard = () => {
                 </div>
               </Card>
 
-              <Card title="Low Stock Alerts">
-                <div className="space-y-3">
-                  <div className="p-3 border border-yellow-200 bg-yellow-50/50 rounded flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="text-yellow-600" size={16} />
-                      <span className="text-xs font-semibold text-yellow-800">Nux Vomica 200C</span>
+              <Card title="Low Stock & Out of Stock Alerts">
+                <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
+                  {outOfStockItems.length === 0 && lowStockItems.length === 0 ? (
+                    <div className="text-center py-6 text-xs text-slate-400">
+                      All remedy stock levels are healthy!
                     </div>
-                    <span className="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-bold">12 VIALS LEFT</span>
-                  </div>
-
-                  <div className="p-3 border border-red-200 bg-red-50/50 rounded flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="text-red-600" size={16} />
-                      <span className="text-xs font-semibold text-red-800">Belladonna 30C</span>
-                    </div>
-                    <span className="text-[10px] bg-red-100 text-red-800 px-2 py-0.5 rounded font-bold">OUT OF STOCK</span>
-                  </div>
+                  ) : (
+                    <>
+                      {outOfStockItems.map(item => (
+                        <div key={item.id} className="p-3 border border-red-200 bg-red-50/50 rounded flex-shrink-0 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="text-red-600" size={16} />
+                            <span className="text-xs font-semibold text-red-800">{item.name}</span>
+                          </div>
+                          <span className="text-[10px] bg-red-100 text-red-800 px-2 py-0.5 rounded font-bold">OUT OF STOCK</span>
+                        </div>
+                      ))}
+                      {lowStockItems.map(item => (
+                        <div key={item.id} className="p-3 border border-yellow-200 bg-yellow-50/50 rounded flex-shrink-0 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="text-yellow-600" size={16} />
+                            <span className="text-xs font-semibold text-yellow-800">{item.name}</span>
+                          </div>
+                          <span className="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-bold">{item.stock} {item.unit || 'vials'} LEFT</span>
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
               </Card>
             </div>
@@ -163,29 +186,7 @@ export const InventoryDashboard = () => {
           </div>
         );
       case 'inventory':
-        return (
-          <div className="space-y-6 animate-fade-in">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">Medicine Directory & Stock Management</h2>
-              <p className="text-xs text-slate-500">Edit, add, and restock dilution inventory vials.</p>
-            </div>
-            <Table headers={['Medicine Name', 'Dilution / Potency', 'Category', 'In Stock (Vials)', 'Status']}>
-              {medicines.map(m => (
-                <tr key={m.id} className="hover:bg-slate-50/50">
-                  <td className="px-4 py-3 font-semibold text-slate-800 text-sm">{m.name}</td>
-                  <td className="px-4 py-3 text-slate-600 text-xs font-mono">{m.dilution}</td>
-                  <td className="px-4 py-3 text-slate-500 text-xs">{m.category}</td>
-                  <td className="px-4 py-3 text-slate-700 text-sm font-semibold">{m.stock}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant={m.status === 'Available' ? 'success' : m.status === 'Low Stock' ? 'warning' : 'danger'}>
-                      {m.status}
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
-            </Table>
-          </div>
-        );
+        return <InventoryList />;
       case 'prescription_requests':
         return (
           <div className="space-y-4 animate-fade-in">

@@ -321,6 +321,22 @@ export const api = {
     return await request('/inventory/');
   },
 
+  createInventoryItem: async (itemData) => {
+    const isFormData = itemData instanceof FormData;
+    return await request('/inventory/', {
+      method: 'POST',
+      body: isFormData ? itemData : JSON.stringify(itemData),
+    });
+  },
+
+  updateInventoryItem: async (id, itemData) => {
+    const isFormData = itemData instanceof FormData;
+    return await request(`/inventory/${id}/`, {
+      method: isFormData ? 'PATCH' : 'PUT',
+      body: isFormData ? itemData : JSON.stringify(itemData),
+    });
+  },
+
   updateStock: async (id, stock) => {
     return await request(`/inventory/${id}/adjust_stock/`, {
       method: 'POST',
